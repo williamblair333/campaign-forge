@@ -1,0 +1,40 @@
+# ── campaign-forge secrets ────────────────────────────────────────────────────
+.env
+
+# ── Kanka CE (cloned by user during setup — not tracked here) ─────────────────
+kanka-ce/
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+.env/
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg
+
+# ── Editors / OS ──────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.iml
+
+# ── Logs / temp ───────────────────────────────────────────────────────────────
+*.log
+tmp/
+temp/

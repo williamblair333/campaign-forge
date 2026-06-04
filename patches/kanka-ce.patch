@@ -1,0 +1,87 @@
+diff --git a/.env.example b/.env.example
+index 0e84c9c7a..6d7004d2b 100644
+--- a/.env.example
++++ b/.env.example
+@@ -79,6 +79,9 @@ QUEUE_DRIVER=sync
+ REDIS_HOST=redis
+ REDIS_PASSWORD=
+ REDIS_PORT=6379
++# REDIS_HOST_PORT overrides only the host-side port mapping (docker-compose).
++# Set this if 6379 is occupied on the host; the app always connects on REDIS_PORT internally.
++REDIS_HOST_PORT=6379
+ 
+ 
+ # -------------------------
+@@ -119,6 +122,9 @@ FILESYSTEM_DRIVER=minio
+ MINIO_URL=http://localhost #or http://{host-ip}, where you replace {host-ip} with the local ip of machine running kanka
+ MINIO_PORT=9000
+ MINIO_CONSOLE_PORT=8900
++# HOST_PORT variants override only the host-side port mapping; app and thumbor connect internally on 9000.
++MINIO_HOST_PORT=9000
++MINIO_CONSOLE_HOST_PORT=8900
+ 
+ # MinIO credentials and bucket name.
+ MINIO_ACCESS_KEY_ID=sail
+diff --git a/app/Services/DomainService.php b/app/Services/DomainService.php
+index c7d585706..af0147dbd 100644
+--- a/app/Services/DomainService.php
++++ b/app/Services/DomainService.php
+@@ -21,7 +21,11 @@ public function isApp(): bool
+      */
+     public function isApi(): bool
+     {
+-        return $this->request->is('api/*') || $this->request->host() === $this->api();
++        // Only use host-based detection. The path-based fallback (`is('api/*')`)
++        // breaks single-domain local installs: when a request arrives at /api/*,
++        // isApi() returns true, routes get registered under the API subdomain with
++        // no /api prefix, and the same request never matches them.
++        return $this->request->host() === $this->api();
+     }
+ 
+     /**
+diff --git a/config/filesystems.php b/config/filesystems.php
+index 4affc8226..7acec803f 100644
+--- a/config/filesystems.php
++++ b/config/filesystems.php
+@@ -40,6 +40,17 @@
+             'visibility' => 'public',
+         ],
+ 
++        'minio' => [
++            'driver' => 's3',
++            'key' => env('MINIO_ACCESS_KEY_ID', 'sail'),
++            'secret' => env('MINIO_PASSWORD'),
++            'region' => 'us-east-1',
++            'bucket' => env('MINIO_BUCKET', 'kanka'),
++            'endpoint' => env('MINIO_URL', 'http://minio') . ':' . env('MINIO_PORT', 9000),
++            'use_path_style_endpoint' => true,
++            'visibility' => 'public',
++        ],
++
+         's3' => [
+             'driver' => 's3',
+             'key' => env('AWS_ACCESS_KEY_ID'),
+diff --git a/docker-compose.yml b/docker-compose.yml
+index c17ac5be1..c8f12b3c1 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -53,7 +53,7 @@ services:
+         container_name: kanka_ce_redis
+         image: 'redis:alpine'
+         ports:
+-            - '${REDIS_PORT}:6379'
++            - '${REDIS_HOST_PORT:-6379}:6379'
+         volumes:
+             - '${KANKA_CE_DATA}/redis:/data'
+         networks:
+@@ -69,8 +69,8 @@ services:
+         container_name: kanka_ce_minio
+         image: 'minio/minio:RELEASE.2024-07-15T19-02-30Z'
+         ports:
+-            - '${MINIO_PORT}:9000'
+-            - '${MINIO_CONSOLE_PORT}:8900'
++            - '${MINIO_HOST_PORT:-9000}:9000'
++            - '${MINIO_CONSOLE_HOST_PORT:-8900}:8900'
+         environment:
+             MINIO_ROOT_USER: '${MINIO_ACCESS_KEY_ID}'
+             MINIO_ROOT_PASSWORD: '${MINIO_PASSWORD}'
