@@ -207,13 +207,19 @@ vendor/bin/sail down
 
 ---
 
+## GitHub
+
+https://github.com/williamblair333/campaign-forge
+
+---
+
 ## Start Next Session With
 
 ```bash
 cd /opt/proj/campaign-forge
 # Load env
 source .env
-# Verify Kanka CE is up
+# Verify Kanka CE is up (start it first if needed: cd kanka-ce && vendor/bin/sail up -d)
 curl -s -H "Authorization: Bearer $KANKA_TOKEN" http://localhost:8081/api/1.0/campaigns | python3 -m json.tool
 # Then: build world_builder.py — Phase 2
 ```
