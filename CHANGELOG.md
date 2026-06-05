@@ -74,6 +74,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - GM credentials — confirmed working via direct POST login
 - `JoinGameForm.render()` — confirmed rendering form in headless Chromium from dma64
 
+## 2026-06-05 — Debug: Foundry join page blank (WebGL unavailable in browser)
+
+### Investigated
+- **Root cause found:** `PIXI.Assets.init()` crashes with `TypeError: Cannot read properties of undefined (reading 'getExtension')` in PixiJS `detectCompressedTextures`. PixiJS probes WebGL GPU extensions before anything else; if WebGL is unavailable the init throws, `Setup.create()` never runs, and the join form never renders — leaving only the background splash image.
+- **Server confirmed fully healthy:** socket.io connects, session cookie valid, `getJoinData` returns world + users, all four Handlebars templates load via socket. Problem is 100% client-side.
+- **Browser must have WebGL enabled** — access Foundry from the local machine (dma64) where the GPU/display is available, not from a remote or headless browser.
+- Temporarily disabled `foundry-mcp-bridge` module (renamed folder) to rule out module interference — not the cause; restored afterward.
+
+### No code changes this session.
+
+---
+
 ## [Unreleased]
 
 ### Planned

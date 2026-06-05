@@ -1,8 +1,8 @@
 # campaign-forge — Session Handoff
 
 **Date:** 2026-06-05
-**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket access from remote Tailscale peers fixed. foundry-vtt-mcp installed, smoke tests pending.
-**Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment → world builder + map tools → Foundry VTT setup → Foundry WebSocket debugging
+**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed. **Smoke tests blocked until next session — must run browser from dma64 directly (WebGL required).**
+**Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment → world builder + map tools → Foundry VTT setup → Foundry WebSocket debugging → Foundry join page WebGL investigation
 
 ---
 
@@ -223,8 +223,11 @@ curl -s -H "Authorization: Bearer $KANKA_TOKEN" http://localhost:8081/api/1.0/ca
 # Check Foundry VTT (start if needed: bash scripts/foundry-setup.sh)
 bash scripts/foundry-setup.sh status
 
-# Then: Phase 3 smoke tests
-# 1. Open http://100.118.143.57:30000/join in browser — form should now appear
+# Then: Phase 3 smoke tests — MUST run browser on dma64 directly (not remote)
+# Foundry uses PixiJS which requires WebGL; a remote/headless browser will not work.
+#
+# 1. On dma64: open http://localhost:30000/join (or http://100.118.143.57:30000/join)
+#    — the player selector form should appear (Gamemaster card visible)
 # 2. Log in as Gamemaster (password: FoundryGM2026!)
 # 3. Settings → Module Settings → Foundry MCP Bridge:
 #    - Websocket Server Host: 127.0.0.1  ← NOTE: was host.docker.internal; changed due to network_mode: host
