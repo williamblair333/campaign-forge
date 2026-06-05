@@ -53,6 +53,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-05 — Fix: Foundry WebSocket unreachable from remote Tailscale peers
+
+### Fixed
+- **Foundry join page blank for remote browser** — `docker-compose.foundry.yml` switched from `ports: ["100.118.143.57:30000:30000/tcp"]` to `network_mode: host`.
+
+  **Root cause:** Docker's NAT (DNAT + conntrack) for a specific-IP port binding routes return packets through the kernel's main routing table. Tailscale peer routes (`100.120.43.24`, etc.) only exist in routing table 52, not main. The WebSocket TCP upgrade establishes from the remote browser but the server's response packets were mis-routed, silently dropping the connection before the socket.io `connection` event ever fired. HTTP GET requests completed because they're short-lived and conntrack managed to resolve them; the sustained WebSocket handshake exposed the asymmetric routing failure.
+
+  With `network_mode: host`, Foundry's Node.js process binds directly to port 30000 on the host network stack — no Docker iptables NAT involved. Tailscale traffic hits the process directly.
+
+- **MCP bridge host setting** — with host networking, the Foundry module's "Websocket Server Host" setting must be `127.0.0.1` (not `host.docker.internal`), since the container's localhost is now the host's localhost.
+
+### Changed
+- `docker-compose.foundry.yml` — replaced `ports` + `extra_hosts` with `network_mode: host`
+
+### Diagnosed (no code change needed)
+- Session cookie `SameSite=Strict` — confirmed NOT the issue; cookie was delivered correctly
+- `getJoinData` socket event — confirmed working; returns world + users correctly
+- All four join Handlebars templates — confirmed loading via socket
+- GM credentials — confirmed working via direct POST login
+- `JoinGameForm.render()` — confirmed rendering form in headless Chromium from dma64
+
 ## [Unreleased]
 
 ### Planned

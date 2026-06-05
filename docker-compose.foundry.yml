@@ -34,15 +34,10 @@ services:
       CONTAINER_CACHE: /data/container_cache
       # Preserve options.json across restarts (prevents admin UI settings from being reset)
       CONTAINER_PRESERVE_CONFIG: "true"
-    ports:
-      # Bound to Tailscale IP only — reachable via Tailscale from any device on the network.
-      # Using the specific Tailscale IP (not 0.0.0.0) avoids Docker's iptables/ufw bypass
-      # which would otherwise expose Foundry on LAN and other interfaces too.
-      # If the Tailscale IP changes (machine re-registered), update this and restart.
-      - "100.118.143.57:30000:30000/tcp"
-    extra_hosts:
-      # Allows the Foundry module (inside the container) to reach the MCP backend
-      # on the host via host.docker.internal (resolves to Docker bridge gateway).
-      # Configure the module's "Websocket Server Host" to host.docker.internal,
-      # port 31415 — see SETUP.md §17 for full settings.
-      - "host.docker.internal:host-gateway"
+    network_mode: host
+    # host networking: Foundry binds directly to port 30000 on the host network stack,
+    # bypassing Docker's iptables NAT. This is required for WebSocket connections from
+    # remote Tailscale peers — Docker's DNAT+policy-routing interaction silently drops
+    # WebSocket upgrade packets from table-52 (Tailscale) routes.
+    # Accessible at http://100.118.143.57:30000 via Tailscale.
+    # With host networking, host.docker.internal = localhost (127.0.0.1).

@@ -17,11 +17,12 @@
 - `scripts/fmg-setup.sh` — clones Azgaar/Fantasy-Map-Generator, serves on http://localhost:8082 via nginx (localhost-only bind)
 
 ### Phase 3 — Foundry VTT integration ✅ (2026-06-05)
-- Foundry VTT 14.363 installed via felddy Docker image, running at http://localhost:30000
+- Foundry VTT 14.363 installed via felddy Docker image, running at http://100.118.143.57:30000
 - `docker-compose.foundry.yml` + `scripts/foundry-setup.sh` — manage Foundry lifecycle (start/stop/backup)
 - `foundry-vtt-mcp` cloned and npm-installed — 37 MCP tools available
 - License key and admin key stored in `.env`
-- Remaining: smoke tests — Claude creates a Scene and NPC actor in Foundry via MCP bridge
+- **WebSocket fixed (2026-06-05):** switched to `network_mode: host`; join page form now renders for remote Tailscale browsers
+- Remaining: smoke tests — GM logs in, configures MCP bridge (`127.0.0.1:31415`), Claude creates a Scene and NPC actor
 
 ---
 

@@ -1,8 +1,8 @@
 # campaign-forge — Session Handoff
 
 **Date:** 2026-06-05
-**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. foundry-vtt-mcp installed, smoke tests pending.
-**Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment → world builder + map tools → Foundry VTT setup
+**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket access from remote Tailscale peers fixed. foundry-vtt-mcp installed, smoke tests pending.
+**Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment → world builder + map tools → Foundry VTT setup → Foundry WebSocket debugging
 
 ---
 
@@ -137,10 +137,11 @@ POST-SESSION
 - [x] `scripts/fmg-setup.sh` — serves FMG on http://localhost:8082 via nginx
 
 ### Phase 3 — Foundry VTT integration ✅ DONE (smoke tests pending)
-- [x] Foundry VTT 14.363 running via felddy Docker image at http://localhost:30000
+- [x] Foundry VTT 14.363 running via felddy Docker image at http://100.118.143.57:30000
 - [x] `docker-compose.foundry.yml` + `scripts/foundry-setup.sh` — lifecycle management
 - [x] `foundry-vtt-mcp` cloned and npm-installed (37 MCP tools)
-- [ ] **TODO: smoke tests** — Claude creates a Scene and NPC actor in Foundry via MCP
+- [x] **WebSocket fixed** — switched to `network_mode: host`; remote Tailscale browsers can now connect
+- [ ] **TODO: smoke tests** — GM logs into world, configures foundry-vtt-mcp module (host: `127.0.0.1`, port: `31415`), Claude creates a Scene and NPC actor
 - [ ] Optionally wire foundryvtt-rest-api as a REST alternative
 
 ### Phase 4 — Local AI / RAG (START HERE)
@@ -222,6 +223,22 @@ curl -s -H "Authorization: Bearer $KANKA_TOKEN" http://localhost:8081/api/1.0/ca
 # Check Foundry VTT (start if needed: bash scripts/foundry-setup.sh)
 bash scripts/foundry-setup.sh status
 
-# Then: Phase 3 smoke tests — wire foundry-vtt-mcp and verify Claude can create a Scene
+# Then: Phase 3 smoke tests
+# 1. Open http://100.118.143.57:30000/join in browser — form should now appear
+# 2. Log in as Gamemaster (password: FoundryGM2026!)
+# 3. Settings → Module Settings → Foundry MCP Bridge:
+#    - Websocket Server Host: 127.0.0.1  ← NOTE: was host.docker.internal; changed due to network_mode: host
+#    - MCP Port: 31415
+#    - Allow Write Operations: ✅
+# 4. Run MCP backend: node packages/server/dist/index.js (in foundry-vtt-mcp/)
+# 5. Ask Claude: "List scenes in my Foundry world" to verify bridge
 # After that: Phase 4 — dnd-llm-game RAG setup
 ```
+
+## Key Infrastructure Notes
+
+**Foundry networking:** `network_mode: host` — container uses host network stack directly. No Docker NAT. Port 30000 accessible on all host interfaces. Tailscale IP: `100.118.143.57:30000`.
+
+**Why host networking:** Docker's DNAT+conntrack routed return packets via the main routing table, which doesn't contain Tailscale peer routes (those are in table 52 only). This silently dropped WebSocket upgrade responses from remote Tailscale peers while allowing short-lived HTTP GETs to complete. Switching to host networking bypasses Docker NAT entirely.
+
+**MCP bridge host:** `127.0.0.1:31415` (not `host.docker.internal` — with host networking, container localhost = host localhost).
