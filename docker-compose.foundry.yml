@@ -1,0 +1,41 @@
+# Foundry VTT — felddy/foundryvtt:14
+#
+# First-time setup:
+#   1. Get a timed download URL from foundryvtt.com → profile → Purchased Software Licenses
+#      → OS: Node.js → 🔗 Timed URL  (expires ~1 hour — run this promptly)
+#   2. Add to .env:
+#        FOUNDRY_RELEASE_URL=<timed url>
+#        FOUNDRY_ADMIN_KEY=<choose a strong admin password>
+#   3. bash scripts/foundry-setup.sh
+#
+# After first successful start, Foundry is cached in ./foundry/data/container_cache
+# and the timed URL is no longer needed for restarts.
+#
+# Access: http://localhost:30000
+# Logs:   docker logs -f campaign-forge-foundry
+
+services:
+  foundry:
+    image: ghcr.io/felddy/foundryvtt:14
+    container_name: campaign-forge-foundry
+    hostname: foundry
+    init: true
+    restart: unless-stopped
+    volumes:
+      - ./foundry/data:/data
+    environment:
+      # License + auth
+      FOUNDRY_LICENSE_KEY: ${FOUNDRY_LICENSE_KEY}
+      FOUNDRY_ADMIN_KEY: ${FOUNDRY_ADMIN_KEY:?Set FOUNDRY_ADMIN_KEY in .env}
+      # Download — timed URL (only needed once; cached after first start)
+      # If this expires, get a new one: foundryvtt.com → Purchased Software → Node.js → Timed URL
+      FOUNDRY_RELEASE_URL: ${FOUNDRY_RELEASE_URL:-}
+      # Cache the downloaded binary so restarts don't re-download
+      CONTAINER_CACHE: /data/container_cache
+      # Preserve options.json across restarts (prevents admin UI settings from being reset)
+      CONTAINER_PRESERVE_CONFIG: "true"
+    ports:
+      # Localhost-only — expose to LAN only if needed (add reverse proxy for that)
+      - "127.0.0.1:30000:30000/tcp"
+      # MCP bridge WebSocket — foundry-vtt-mcp module listens here
+      - "127.0.0.1:31415:31415/tcp"

@@ -8,6 +8,7 @@ This guide walks you through setting up the full campaign-forge stack from scrat
 
 ## Table of Contents
 
+**Phase 1 — Kanka CE (world-state store)**
 1. [What You're Installing](#1-what-youre-installing)
 2. [Prerequisites](#2-prerequisites)
 3. [Get the Code](#3-get-the-code)
@@ -21,6 +22,14 @@ This guide walks you through setting up the full campaign-forge stack from scrat
 11. [Verify Everything Works](#11-verify-everything-works)
 12. [Stopping and Starting](#12-stopping-and-starting)
 13. [Troubleshooting](#13-troubleshooting)
+
+**Phase 2 — World Builder**
+14. [world_builder.py — AI world seeding](#14-world_builderpy--ai-world-seeding)
+15. [map_tools.py — Fantasy Map Generator import](#15-map_toolspy--fantasy-map-generator-import)
+
+**Phase 3 — Foundry VTT**
+16. [Foundry VTT — self-hosted VTT](#16-foundry-vtt--self-hosted-vtt)
+17. [foundry-vtt-mcp — MCP bridge](#17-foundry-vtt-mcp--mcp-bridge)
 
 ---
 
@@ -418,13 +427,181 @@ Usually a misconfigured `.env` value. Re-read the environment configuration step
 
 ---
 
+---
+
+## 14. world_builder.py — AI world seeding
+
+`world_builder.py` takes a natural-language campaign description, calls Claude to extract entities (locations, characters, organisations, events, notes), and pushes them into Kanka CE.
+
+### Prerequisites
+
+```bash
+pip install anthropic requests
+```
+
+You need an Anthropic API key. Add it to your `.env`:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### Usage
+
+```bash
+source .env
+
+# Interactive (type your description, Ctrl+D to submit)
+python world_builder.py
+
+# Non-interactive
+python world_builder.py --description "The Shattered Realm is a continent broken by the Sundering War..."
+
+# Preview without pushing anything
+python world_builder.py --description "..." --dry-run
+
+# Skip confirmation prompts
+python world_builder.py --description "..." --yes
+```
+
+### What it does
+
+1. Calls Claude with your description
+2. Claude uses a structured tool call to extract every distinct entity
+3. Shows you a summary of what was extracted
+4. Asks for confirmation, then creates all entities in Kanka CE
+5. Prints the campaign URL so you can verify in the browser
+
+---
+
+## 15. map_tools.py — Fantasy Map Generator import
+
+`map_tools.py` parses `.map` files exported from [Azgaar's Fantasy Map Generator](https://azgaar.github.io/Fantasy-Map-Generator/) and syncs settlements and political states to Kanka CE as locations and organisations.
+
+### Start FMG locally
+
+```bash
+bash scripts/fmg-setup.sh
+# Open http://localhost:8082 in your browser
+```
+
+Generate or load a map, then: **File → Save As → .map**
+
+### Parse and sync
+
+```bash
+source .env
+
+# Preview what's in the file
+python3 map_tools.py parse map.map
+
+# Sync to Kanka CE (with confirmation prompt)
+python3 map_tools.py sync map.map
+
+# Dry run — shows what would be created
+python3 map_tools.py sync map.map --dry-run
+
+# Sync to a specific campaign
+python3 map_tools.py sync map.map --campaign-id 1 --yes
+```
+
+Burgs (settlements) become **locations** of type "Settlement". States (political entities) become **organisations** of type "Kingdom" (or the FMG state type). Already-existing names are skipped.
+
+---
+
+## 16. Foundry VTT — self-hosted VTT
+
+Foundry VTT runs in Docker via the [felddy/foundryvtt](https://github.com/felddy/foundryvtt-docker) image.
+
+### Prerequisites
+
+You need:
+- A Foundry VTT license key (one-time purchase at foundryvtt.com)
+- A timed download URL (get it from foundryvtt.com → Purchased Licenses → Node.js → 🔗 Timed URL — expires in ~1 hour)
+
+Add to `.env`:
+
+```
+FOUNDRY_LICENSE_KEY=XXXX-XXXX-XXXX-XXXX-XXXX-XXXX
+FOUNDRY_ADMIN_KEY=choose-a-strong-password
+FOUNDRY_RELEASE_URL=https://r2.foundryvtt.com/releases/...  # timed URL
+```
+
+### First-time start
+
+```bash
+bash scripts/foundry-setup.sh
+```
+
+This pulls the Docker image, downloads the Foundry binary (~200 MB), and starts the container. First boot takes 1–2 minutes. The binary is cached in `foundry/data/container_cache/` — subsequent starts don't re-download.
+
+Watch the logs:
+
+```bash
+bash scripts/foundry-setup.sh logs
+```
+
+Once running, open **http://localhost:30000**. Enter the admin password (`FOUNDRY_ADMIN_KEY`) and complete the license setup wizard.
+
+### Stopping and restarting
+
+```bash
+bash scripts/foundry-setup.sh stop     # stop (data preserved)
+bash scripts/foundry-setup.sh start    # start (uses cached binary)
+bash scripts/foundry-setup.sh status   # show container state
+bash scripts/foundry-setup.sh backup   # tar.gz of worlds/
+```
+
+### Port notes
+
+| Port | What |
+|---|---|
+| 30000 | Foundry web UI and player connections |
+| 31415 | MCP bridge WebSocket (foundry-vtt-mcp) |
+
+Both ports are bound to `127.0.0.1` (localhost-only). To expose to your LAN, add a reverse proxy.
+
+---
+
+## 17. foundry-vtt-mcp — MCP bridge
+
+`foundry-vtt-mcp` exposes 37 MCP tools that let Claude create and manage scenes, actors, items, and journal entries directly in Foundry.
+
+### Install
+
+```bash
+# Clone the MCP bridge alongside campaign-forge
+git clone https://github.com/adambdooley/foundry-vtt-mcp foundry-vtt-mcp
+cd foundry-vtt-mcp
+npm install
+cd ..
+```
+
+### Configure
+
+```bash
+cp .env.example .env
+# Edit: set FOUNDRY_URL=http://localhost:30000 and FOUNDRY_API_KEY
+```
+
+Get the Foundry API key from the Foundry admin panel: **Settings → API** (or generate via the admin console).
+
+### Run
+
+```bash
+node packages/server/dist/index.js
+```
+
+Or add to your Claude Desktop `claude_desktop_config.json` — see `foundry-vtt-mcp/claude_desktop_config.example.json` for the snippet.
+
+### Verify
+
+With the bridge running, ask Claude: *"List the scenes in my Foundry world."* A successful response means the bridge is wired.
+
+---
+
 ## What's Next
 
-Once Phase 1 is running, the next steps are:
-
-- **Phase 2 — World Builder** (`world_builder.py`): Conversational CLI that takes a campaign description, calls Claude to extract entities, and populates Kanka CE
-- **Phase 3 — Foundry VTT**: Connect your VTT to Kanka CE and Claude via the foundry-vtt-mcp bridge
 - **Phase 4 — Local RAG**: Stand up dnd-llm-game for fully offline 5e statblock retrieval
 - **Phase 5 — CampaignGenerator Integration**: Wire the full prep and post-session narrative pipeline
 
-See [HANDOFF.md](HANDOFF.md) for the current state and full build order.
+See [HANDOFF.md](HANDOFF.md) for current state and [ROADMAP.md](ROADMAP.md) for the full build order.

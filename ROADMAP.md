@@ -2,7 +2,7 @@
 
 ---
 
-## Completed (recent)
+## Completed
 
 ### Phase 1 — Foundation ✅ (2026-06-04)
 - Kanka Community Edition deployed via Docker Compose
@@ -10,6 +10,18 @@
 - REST API verified end-to-end: campaigns, locations, characters, organisations, events, notes, tags, entity attributes
 - `kanka_client.py` Python client written and tested
 - Public GitHub repo created: https://github.com/williamblair333/campaign-forge
+
+### Phase 2 — World creation conversation loop ✅ (2026-06-04)
+- `world_builder.py` — conversational CLI: describe campaign → Claude extracts entities → pushed to Kanka CE
+- `map_tools.py` — parse FMG `.map` exports; `parse` shows summary, `sync` pushes burgs→locations and states→organisations with duplicate-skip
+- `scripts/fmg-setup.sh` — clones Azgaar/Fantasy-Map-Generator, serves on http://localhost:8082 via nginx (localhost-only bind)
+
+### Phase 3 — Foundry VTT integration ✅ (2026-06-05)
+- Foundry VTT 14.363 installed via felddy Docker image, running at http://localhost:30000
+- `docker-compose.foundry.yml` + `scripts/foundry-setup.sh` — manage Foundry lifecycle (start/stop/backup)
+- `foundry-vtt-mcp` cloned and npm-installed — 37 MCP tools available
+- License key and admin key stored in `.env`
+- Remaining: smoke tests — Claude creates a Scene and NPC actor in Foundry via MCP bridge
 
 ---
 
@@ -20,20 +32,6 @@ Nothing currently in progress.
 ---
 
 ## Planned
-
-### Phase 2 — World creation conversation loop
-- `world_builder.py` — conversational CLI
-  - DM describes campaign setting as free text
-  - Claude extracts structured entities (locations, NPCs, factions, history beats)
-  - Entities pushed to Kanka CE via `kanka_client.py`
-  - Summary printed of everything created
-- Fantasy Map Generator setup — Docker, GeoJSON export, Foundry import path documented
-
-### Phase 3 — Foundry VTT integration
-- Foundry VTT self-hosted Node server setup
-- `foundry-vtt-mcp` installed and configured (37 MCP tools)
-- Smoke tests: Claude creates a Scene and NPC actor in Foundry via MCP
-- Optional: `foundryvtt-rest-api` as REST alternative
 
 ### Phase 4 — Local AI / RAG
 - `dnd-llm-game` (FastAPI + Ollama + LanceDB) stood up in Docker
@@ -58,7 +56,6 @@ Nothing currently in progress.
 
 ## Open Questions
 
-- Does Foundry VTT require a paid license, or is skyloutyr/VTT a viable free alternative for this stack?
 - Can Fantasy Map Generator be headlessly driven (Puppeteer/Playwright) for agent-triggered generation?
 - What's the canonical source of truth for campaign state — Kanka CE or CampaignGenerator flat markdown files?
 - Is there a Docker-composable Open5e or 5etools API for fully offline 5e data?

@@ -28,13 +28,37 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-05 — Phase 3 complete: Foundry VTT running, foundry-vtt-mcp installed
+
+### Added
+- `docker-compose.foundry.yml` — Foundry VTT 14.363 via felddy Docker image; exposes port 30000 (web) and 31415 (MCP WebSocket)
+- `scripts/foundry-setup.sh` — lifecycle wrapper: start / stop / restart / status / logs / backup
+- `foundry-vtt-mcp/` — MCP bridge repo cloned and npm-installed (37 MCP tools); connects Claude to Foundry
+- `foundry/data/` — Foundry data directory with cached binary (`container_cache/foundryvtt-14.363.zip`)
+- `FOUNDRY_LICENSE_KEY`, `FOUNDRY_ADMIN_KEY`, `FOUNDRY_RELEASE_URL` added to `.env` (timed URL consumed; binary cached)
+
+### State
+- Foundry VTT running at http://localhost:30000 (container healthy)
+- GM admin login: see `.env` → `FOUNDRY_ADMIN_KEY`
+- Remaining: wire foundry-vtt-mcp bridge and run smoke tests
+
+---
+
+## 2026-06-04 — Phase 2 complete: world builder and map tools
+
+### Added
+- `world_builder.py` — conversational CLI: DM describes campaign → Claude extracts entities (locations, characters, organisations, events, notes) → pushed to Kanka CE via tool-use API; supports `--dry-run`, `--yes`, `--description`, `--campaign-id`
+- `map_tools.py` — parse Azgaar Fantasy Map Generator `.map` (JSON) exports; `parse` command shows summary, `sync` command pushes burgs→locations and states→organisations to Kanka CE with duplicate-skip
+- `scripts/fmg-setup.sh` — clones Azgaar/Fantasy-Map-Generator and serves it on http://localhost:8082 via nginx (localhost-only bind)
+
+---
+
 ## [Unreleased]
 
 ### Planned
-- `world_builder.py` — conversational CLI: DM describes world → Claude extracts entities → Kanka CE
-- Fantasy Map Generator Docker setup + GeoJSON import path to Foundry
-- Foundry VTT + foundry-vtt-mcp integration (Phase 3)
-- dnd-llm-game local RAG setup (Phase 4)
+- Foundry VTT MCP smoke tests: Claude creates Scene and NPC actor via foundry-vtt-mcp
+- `foundryvtt-rest-api` as optional REST alternative to MCP bridge
+- `dnd-llm-game` local RAG setup (Phase 4)
 - CampaignGenerator ↔ Kanka CE sync layer (Phase 5)
 
 ---

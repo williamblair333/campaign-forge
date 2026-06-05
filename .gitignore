@@ -38,3 +38,12 @@ Thumbs.db
 *.log
 tmp/
 temp/
+
+# ── Foundry VTT runtime data (binary cache, world files, logs) ────────────────
+foundry/data/
+
+# ── foundry-vtt-mcp (upstream repo — clone separately per SETUP.md §17) ───────
+foundry-vtt-mcp/
+
+# ── Claude Code session tooling ───────────────────────────────────────────────
+.claude/
