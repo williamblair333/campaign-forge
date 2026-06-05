@@ -35,8 +35,11 @@ services:
       # Preserve options.json across restarts (prevents admin UI settings from being reset)
       CONTAINER_PRESERVE_CONFIG: "true"
     ports:
-      # Localhost-only — expose to LAN only if needed (add reverse proxy for that)
-      - "127.0.0.1:30000:30000/tcp"
+      # Bound to Tailscale IP only — reachable via Tailscale from any device on the network.
+      # Using the specific Tailscale IP (not 0.0.0.0) avoids Docker's iptables/ufw bypass
+      # which would otherwise expose Foundry on LAN and other interfaces too.
+      # If the Tailscale IP changes (machine re-registered), update this and restart.
+      - "100.118.143.57:30000:30000/tcp"
     extra_hosts:
       # Allows the Foundry module (inside the container) to reach the MCP backend
       # on the host via host.docker.internal (resolves to Docker bridge gateway).
