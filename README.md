@@ -4,7 +4,7 @@
 
 campaign-forge is an infrastructure and integration layer that lets a Dungeon Master use Claude to build and maintain a living campaign world — creating NPCs, locations, factions, and timelines in a self-hosted world-state store, generating maps, running sessions through a VTT, and automatically processing session transcripts back into structured lore.
 
-> **Status:** Phase 1 complete — Kanka CE REST API wired and verified. Actively building toward full session pipeline.
+> **Status:** Phase 3 complete — Kanka CE, world builder, map tools, and Foundry VTT all running. Building toward full session pipeline.
 
 ---
 
@@ -14,7 +14,10 @@ campaign-forge is an infrastructure and integration layer that lets a Dungeon Ma
 |---|---|---|
 | World-state store | Kanka Community Edition (self-hosted) | ✅ Running |
 | AI entity creation via REST API | `kanka_client.py` | ✅ Working |
-| Virtual tabletop | Foundry VTT + MCP bridge | 🔜 Phase 3 |
+| Conversational world builder | `world_builder.py` | ✅ Working |
+| Map import (Azgaar FMG) | `map_tools.py` + `scripts/fmg-setup.sh` | ✅ Working |
+| Virtual tabletop | Foundry VTT 14.363 (self-hosted) | ✅ Running |
+| VTT ↔ Claude MCP bridge | `foundry-vtt-mcp` (37 tools) | 🔧 Installed, smoke tests pending |
 | Local 5e rules / statblock RAG | dnd-llm-game (Ollama + LanceDB) | 🔜 Phase 4 |
 | Campaign prep pipeline | CampaignGenerator integration | 🔜 Phase 5 |
 | Post-session narrative generation | CampaignGenerator | 🔜 Phase 5 |
@@ -124,11 +127,19 @@ For the full step-by-step walkthrough, see [SETUP.md](SETUP.md).
 
 ```
 campaign-forge/
-├── kanka_client.py       # Python REST client for Kanka CE
+├── kanka_client.py           # Python REST client for Kanka CE
+├── world_builder.py          # Conversational world builder (Claude → Kanka CE)
+├── map_tools.py              # Azgaar FMG .map parser and Kanka CE sync
+├── docker-compose.foundry.yml # Foundry VTT (felddy image, ports 30000 + 31415)
+├── foundry-vtt-mcp/          # MCP bridge: 37 tools connecting Claude to Foundry
+├── foundry/data/             # Foundry persistent data (worlds, config, cache)
+├── scripts/
+│   ├── foundry-setup.sh      # Foundry lifecycle (start/stop/backup)
+│   └── fmg-setup.sh          # Fantasy Map Generator local server
 ├── patches/
-│   └── kanka-ce.patch    # Bug fixes applied to Kanka CE for single-domain installs
-├── .env.example          # Template: KANKA_BASE_URL, KANKA_TOKEN, KANKA_CAMPAIGN_ID
-├── SETUP.md              # Step-by-step setup guide
+│   └── kanka-ce.patch        # Bug fixes applied to Kanka CE for single-domain installs
+├── .env.example              # Template: KANKA_*, FOUNDRY_*, ANTHROPIC_API_KEY
+├── SETUP.md                  # Step-by-step setup guide
 └── CHANGELOG.md
 ```
 

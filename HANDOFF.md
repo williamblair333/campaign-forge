@@ -1,8 +1,8 @@
 # campaign-forge — Session Handoff
 
-**Date:** 2026-06-04
-**Status:** Phase 1 COMPLETE — Kanka CE running, REST API verified, Python client working
-**Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment
+**Date:** 2026-06-05
+**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. foundry-vtt-mcp installed, smoke tests pending.
+**Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment → world builder + map tools → Foundry VTT setup
 
 ---
 
@@ -20,7 +20,7 @@ CampaignGenerator (at `/opt/proj/CampaignGenerator`) remains the **application-l
 
 ---
 
-## Phase 1 Status: DONE
+## Phase 1 Status: DONE ✅
 
 ### What was built
 
@@ -131,22 +131,19 @@ POST-SESSION
 - [x] Document the Kanka CE entity schema (see table above)
 - [x] Write `kanka_client.py` — Python client for all key entity types
 
-### Phase 2 — World creation conversation loop (START HERE)
-- [ ] Build `world_builder.py` — conversational CLI that:
-  - Takes DM's campaign description as input
-  - Calls Claude to extract structured entities (NPCs, locations, factions, history)
-  - Pushes entities to Kanka CE via `kanka_client.py`
-  - Outputs summary of what was created
-- [ ] Wire up Fantasy Map Generator (Docker) — generate map, export GeoJSON, document import path into Foundry
+### Phase 2 — World creation conversation loop ✅ DONE
+- [x] `world_builder.py` — conversational CLI: describe campaign → Claude extracts entities → pushed to Kanka CE
+- [x] `map_tools.py` — parse Azgaar FMG `.map` exports; `parse` shows summary, `sync` pushes burgs + states
+- [x] `scripts/fmg-setup.sh` — serves FMG on http://localhost:8082 via nginx
 
-### Phase 3 — Foundry VTT integration
-- [ ] Install Foundry VTT (self-hosted Node server)
-- [ ] Install and configure foundry-vtt-mcp (37 tools)
-- [ ] Test: Claude creates a Scene in Foundry via MCP
-- [ ] Test: Claude creates an NPC actor in Foundry
+### Phase 3 — Foundry VTT integration ✅ DONE (smoke tests pending)
+- [x] Foundry VTT 14.363 running via felddy Docker image at http://localhost:30000
+- [x] `docker-compose.foundry.yml` + `scripts/foundry-setup.sh` — lifecycle management
+- [x] `foundry-vtt-mcp` cloned and npm-installed (37 MCP tools)
+- [ ] **TODO: smoke tests** — Claude creates a Scene and NPC actor in Foundry via MCP
 - [ ] Optionally wire foundryvtt-rest-api as a REST alternative
 
-### Phase 4 — Local AI / RAG
+### Phase 4 — Local AI / RAG (START HERE)
 - [ ] Stand up dnd-llm-game (FastAPI + Ollama + LanceDB)
 - [ ] Upload PDF rulebooks as lore corpus
 - [ ] Test statblock retrieval from local PDFs
@@ -199,11 +196,11 @@ vendor/bin/sail down
 
 ## Open Questions (still to resolve)
 
-1. **Foundry VTT license** — one-time purchase required. If not available, use skyloutyr/VTT instead (free, no MCP bridge yet).
-2. **5e data layer** — dnd-mcp hits dnd5eapi.co (cloud). For fully self-hosted, need a local Open5e or 5etools API container. Investigate `5e-srd-api` Docker images.
-3. **Map generation gap** — Fantasy Map Generator has no REST API. Options: (a) Puppeteer/Playwright automation, (b) seed-based URL parameters, (c) ComfyUI via foundry-vtt-mcp for battlemaps specifically.
-4. **Sync strategy** — CampaignGenerator uses flat markdown files. Kanka CE uses a database. Decide on canonical source of truth and sync direction.
-5. **Kanka CE upstream patches** — the 3 fixes above (DomainService, filesystems.php, docker-compose.yml) should probably be submitted as PRs to the upstream repo.
+1. **5e data layer** — dnd-mcp hits dnd5eapi.co (cloud). For fully self-hosted, need a local Open5e or 5etools API container. Investigate `5e-srd-api` Docker images.
+2. **Map generation gap** — Fantasy Map Generator has no REST API. Options: (a) Puppeteer/Playwright automation, (b) seed-based URL parameters, (c) ComfyUI via foundry-vtt-mcp for battlemaps specifically.
+3. **Sync strategy** — CampaignGenerator uses flat markdown files. Kanka CE uses a database. Decide on canonical source of truth and sync direction.
+4. **Kanka CE upstream patches** — the 3 fixes (DomainService, filesystems.php, docker-compose.yml) should probably be submitted as PRs to the upstream repo.
+5. **foundry-vtt-mcp API key** — need to confirm how to generate a Foundry API key for the bridge (admin panel or artisan command).
 
 ---
 
@@ -217,9 +214,14 @@ https://github.com/williamblair333/campaign-forge
 
 ```bash
 cd /opt/proj/campaign-forge
-# Load env
 source .env
-# Verify Kanka CE is up (start it first if needed: cd kanka-ce && vendor/bin/sail up -d)
+
+# Check Kanka CE (start if needed: cd kanka-ce && vendor/bin/sail up -d)
 curl -s -H "Authorization: Bearer $KANKA_TOKEN" http://localhost:8081/api/1.0/campaigns | python3 -m json.tool
-# Then: build world_builder.py — Phase 2
+
+# Check Foundry VTT (start if needed: bash scripts/foundry-setup.sh)
+bash scripts/foundry-setup.sh status
+
+# Then: Phase 3 smoke tests — wire foundry-vtt-mcp and verify Claude can create a Scene
+# After that: Phase 4 — dnd-llm-game RAG setup
 ```
