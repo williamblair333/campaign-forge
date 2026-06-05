@@ -576,14 +576,21 @@ npm install
 cd ..
 ```
 
-### Configure
+### Configure the Foundry module settings
 
-```bash
-cp .env.example .env
-# Edit: set FOUNDRY_URL=http://localhost:30000 and FOUNDRY_API_KEY
-```
+Once a GM is logged into the world (see §16), open **Settings → Module Settings → Foundry MCP Bridge** and set:
 
-Get the Foundry API key from the Foundry admin panel: **Settings → API** (or generate via the admin console).
+| Setting | Value |
+|---|---|
+| Enable MCP Bridge | ✅ Enabled (default) |
+| Connection Type | WebSocket (local) |
+| Websocket Server Host | `host.docker.internal` |
+| MCP Port | `31415` |
+| Allow Write Operations | ✅ Enabled (needed for actor/scene creation) |
+
+**Why `host.docker.internal`?** The MCP backend runs on the host, not inside the container. From inside the Docker container, `host.docker.internal` resolves to the Docker bridge gateway — the address the Foundry module uses to reach the host-side MCP server. This host alias is added automatically by `docker-compose.foundry.yml`.
+
+Save the settings. The connection status should change to **Connected**.
 
 ### Run
 

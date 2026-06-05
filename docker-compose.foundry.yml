@@ -37,5 +37,9 @@ services:
     ports:
       # Localhost-only — expose to LAN only if needed (add reverse proxy for that)
       - "127.0.0.1:30000:30000/tcp"
-      # MCP bridge WebSocket — foundry-vtt-mcp module listens here
-      - "127.0.0.1:31415:31415/tcp"
+    extra_hosts:
+      # Allows the Foundry module (inside the container) to reach the MCP backend
+      # on the host via host.docker.internal (resolves to Docker bridge gateway).
+      # Configure the module's "Websocket Server Host" to host.docker.internal,
+      # port 31415 — see SETUP.md §17 for full settings.
+      - "host.docker.internal:host-gateway"
