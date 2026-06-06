@@ -86,6 +86,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-06 — Fix: Foundry MCP bridge serverHost hardcoded to localhost
+
+### Fixed
+- **`foundry-vtt-mcp/packages/foundry-module/src/constants.ts`** — `MCP_HOST` changed from `'localhost'` to `''` (empty = auto-detect). When connecting from a remote browser (e.g. Tailscale), `localhost:31415` resolved to the user's local machine rather than the server, silently failing the WebSocket connection.
+- **`foundry-vtt-mcp/packages/foundry-module/src/settings.ts`** — `getBridgeConfig()` now resolves an empty `serverHost` to `window.location.hostname` at connect time. Works transparently for localhost, LAN, and Tailscale — no manual setting needed. `validateSettings()` updated to accept blank host. Setting hint updated to document the auto-detect behaviour.
+- Built (`tsc`) and synced to `foundry/data/Data/modules/foundry-mcp-bridge/dist/`.
+
 ## [Unreleased]
 
 ### Planned

@@ -1,7 +1,7 @@
 # campaign-forge — Session Handoff
 
-**Date:** 2026-06-05
-**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed. **Smoke tests blocked until next session — must run browser from dma64 directly (WebGL required).**
+**Date:** 2026-06-06
+**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed and MCP bridge auto-detect deployed. **Smoke tests still pending — must run browser from dma64 directly (WebGL required).**
 **Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment → world builder + map tools → Foundry VTT setup → Foundry WebSocket debugging → Foundry join page WebGL investigation
 
 ---
@@ -141,7 +141,7 @@ POST-SESSION
 - [x] `docker-compose.foundry.yml` + `scripts/foundry-setup.sh` — lifecycle management
 - [x] `foundry-vtt-mcp` cloned and npm-installed (37 MCP tools)
 - [x] **WebSocket fixed** — switched to `network_mode: host`; remote Tailscale browsers can now connect
-- [ ] **TODO: smoke tests** — GM logs into world, configures foundry-vtt-mcp module (host: `127.0.0.1`, port: `31415`), Claude creates a Scene and NPC actor
+- [ ] **TODO: smoke tests** — GM logs into world, MCP bridge now auto-detects serverHost (leave blank), port `31415`. Claude creates a Scene and NPC actor to confirm end-to-end.
 - [ ] Optionally wire foundryvtt-rest-api as a REST alternative
 
 ### Phase 4 — Local AI / RAG (START HERE)
@@ -230,7 +230,7 @@ bash scripts/foundry-setup.sh status
 #    — the player selector form should appear (Gamemaster card visible)
 # 2. Log in as Gamemaster (password: FoundryGM2026!)
 # 3. Settings → Module Settings → Foundry MCP Bridge:
-#    - Websocket Server Host: 127.0.0.1  ← NOTE: was host.docker.internal; changed due to network_mode: host
+#    - Websocket Server Host: (leave blank — auto-detects from page URL)
 #    - MCP Port: 31415
 #    - Allow Write Operations: ✅
 # 4. Run MCP backend: node packages/server/dist/index.js (in foundry-vtt-mcp/)
@@ -244,4 +244,4 @@ bash scripts/foundry-setup.sh status
 
 **Why host networking:** Docker's DNAT+conntrack routed return packets via the main routing table, which doesn't contain Tailscale peer routes (those are in table 52 only). This silently dropped WebSocket upgrade responses from remote Tailscale peers while allowing short-lived HTTP GETs to complete. Switching to host networking bypasses Docker NAT entirely.
 
-**MCP bridge host:** `127.0.0.1:31415` (not `host.docker.internal` — with host networking, container localhost = host localhost).
+**MCP bridge host:** auto-detected from `window.location.hostname` — leave the "Websocket Server Host" setting blank. Works for localhost, LAN, and Tailscale without manual config. Port stays `31415`.
