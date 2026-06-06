@@ -22,7 +22,8 @@
 - `foundry-vtt-mcp` cloned and npm-installed — 37 MCP tools available
 - License key and admin key stored in `.env`
 - **WebSocket fixed (2026-06-05):** switched to `network_mode: host`; join page form now renders for remote Tailscale browsers
-- Remaining: smoke tests — GM logs in, configures MCP bridge (`127.0.0.1:31415`), Claude creates a Scene and NPC actor
+- MCP bridge serverHost now auto-detects from `window.location.hostname` — no manual config needed
+- Remaining: smoke tests — GM logs in (leave serverHost blank, port 31415), Claude creates a Scene and NPC actor
 
 ---
 
