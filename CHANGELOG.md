@@ -6,6 +6,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-07 — Docker Port Registry established; inter-project port conflicts resolved
+
+### Added
+- Docker Port Registry (session memory) — master port map for all `/opt/proj` Docker projects; standing policy: always consult before assigning any new host port
+
+### Fixed
+- **`kanka-ce/docker-compose.yml`** — redis host port default 6379→6381 (Uncle-J langfuse owns 6379; `.env` still overrides to 6380 — no runtime change on this machine)
+- **`foc-exec/docker-compose.yml`** — Vite host port 5173→5274, postgres default 5433→5435 (kanka-ce owns 5173; Uncle-J langfuse owns 5433)
+- **`proj-fog-of-chess/docker-compose.yml`** — Vite host port 5173→5275, postgres default 5433→5436
+
+---
+
 ## 2026-06-04 — Phase 1 complete: Kanka CE deployed, REST API verified, docs + repo published
 
 ### Added
