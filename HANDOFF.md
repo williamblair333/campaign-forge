@@ -1,7 +1,7 @@
 # campaign-forge — Session Handoff
 
-**Date:** 2026-06-06
-**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed and MCP bridge auto-detect deployed. **Smoke tests still pending — must run browser from dma64 directly (WebGL required).**
+**Date:** 2026-06-07
+**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed and MCP bridge auto-detect deployed. **Smoke tests still pending — must run browser from dma64 directly (WebGL required).** Docker Port Registry established and all inter-project port conflicts resolved (2026-06-07).
 **Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment → world builder + map tools → Foundry VTT setup → Foundry WebSocket debugging → Foundry join page WebGL investigation
 
 ---
@@ -172,7 +172,7 @@ POST-SESSION
 |---|---|---|
 | Kanka CE web | 8081 | Main app |
 | MariaDB | 3306 | DB |
-| Redis | 6380 | Redis host port (internal: 6379) |
+| Redis | 6380 | `.env` override; docker-compose default is now 6381 (6379 reserved for Uncle-J langfuse) |
 | MinIO S3 | 9010 | Host port (internal: 9000) |
 | MinIO Console | 9011 | Admin UI |
 | Meilisearch | 7700 | Search |
@@ -239,6 +239,8 @@ bash scripts/foundry-setup.sh status
 ```
 
 ## Key Infrastructure Notes
+
+**Docker Port Registry:** Master port map for all `/opt/proj` Docker stacks is in session memory (`reference_docker_port_registry.md`). Always consult before assigning any new host port. Uncle-J langfuse owns 5433 and 6379. kanka-ce owns 5173.
 
 **Foundry networking:** `network_mode: host` — container uses host network stack directly. No Docker NAT. Port 30000 accessible on all host interfaces. Tailscale IP: `100.118.143.57:30000`.
 
