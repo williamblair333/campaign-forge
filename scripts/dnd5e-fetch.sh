@@ -27,6 +27,8 @@ FILES=(items.json items-base.json backgrounds.json races.json)
 echo "Fetching 5etools data → $DEST ..." >&2
 
 git clone --depth 1 --filter=blob:none --sparse "$REPO" "$TMP/5etools" >&2
+# --no-cone mode required to select individual files alongside directories
+git -C "$TMP/5etools" sparse-checkout init --no-cone >&2
 git -C "$TMP/5etools" sparse-checkout set \
     "${DIRS[@]/#/data/}" "${FILES[@]/#/data/}" >&2
 

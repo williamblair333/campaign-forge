@@ -57,8 +57,15 @@ def load_data(data_dir: "str | Path") -> "duckdb.DuckDBPyConnection":
             f"CREATE TABLE {table} (name TEXT, source TEXT, type TEXT, data JSON)"
         )
 
+    # foundry.json uses the same envelope keys but contains Foundry VTT overlay data
+    # (sparse system fields, not full statblocks) — exclude to avoid polluting lookups.
+    # index.json and sources.json are metadata, not entity records.
+    _SKIP = {"foundry.json", "index.json", "sources.json", "fluff-index.json"}
+
     data_dir = Path(data_dir)
     for json_file in sorted(data_dir.rglob("*.json")):
+        if json_file.name in _SKIP:
+            continue
         try:
             raw = json.loads(json_file.read_text(encoding="utf-8"))
         except Exception as exc:
