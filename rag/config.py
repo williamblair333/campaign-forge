@@ -26,7 +26,15 @@ CORPUS_DIR = RAG_DIR / "corpus"
 DB_PATH = str(RAG_DIR / "lancedb")
 TABLE = os.environ.get("RAG_TABLE", "rules")
 
-# Chunking: character windows with overlap. SRD statblocks fit comfortably in
-# ~1200 chars; overlap keeps a block from being split across a boundary.
+# Chunking: paragraph-boundary packing up to this many chars (a statblock fits
+# in ~1200); overlap carries the previous chunk's tail for cross-boundary recall.
 CHUNK_CHARS = int(os.environ.get("RAG_CHUNK_CHARS", "1200"))
 CHUNK_OVERLAP = int(os.environ.get("RAG_CHUNK_OVERLAP", "200"))
+
+# Hybrid rerank: pull RERANK_CANDIDATES by vector, then re-score each as
+# ALPHA*vector_similarity + (1-ALPHA)*lexical_overlap and keep the top-k. This
+# lifts the specific statblock above generic rules text when the query names a
+# creature. Set RAG_RERANK_CANDIDATES=0 to disable (pure vector). ALPHA stays
+# vector-dominant so paraphrase queries (no shared tokens) aren't penalised hard.
+RERANK_CANDIDATES = int(os.environ.get("RAG_RERANK_CANDIDATES", "20"))
+RERANK_ALPHA = float(os.environ.get("RAG_RERANK_ALPHA", "0.7"))
