@@ -33,6 +33,22 @@ class KankaClient:
         r.raise_for_status()
         return r.json()
 
+    def _get_all(self, path: str) -> list:
+        """Follow Kanka's pagination (30/page) and return every record.
+
+        List endpoints page at 30 rows; `links.next` carries an absolute URL.
+        Without this, a campaign with >30 NPCs silently loses the tail.
+        """
+        out: list = []
+        url = f"{self.base}{path}"
+        while url:
+            r = self.session.get(url)
+            r.raise_for_status()
+            body = r.json()
+            out.extend(body.get("data", []))
+            url = (body.get("links") or {}).get("next")
+        return out
+
     def _post(self, path: str, data: dict) -> dict:
         r = self.session.post(f"{self.base}{path}", json=data)
         r.raise_for_status()
@@ -84,13 +100,28 @@ class KankaClient:
 
     # ── Events ────────────────────────────────────────────────────────────────
 
+    def list_events(self, campaign_id: int) -> list:
+        return self._get_all(f"/campaigns/{campaign_id}/events")
+
     def create_event(self, campaign_id: int, name: str, **kwargs) -> dict:
         return self._post(f"/campaigns/{campaign_id}/events", {"name": name, **kwargs})["data"]
 
     # ── Notes ─────────────────────────────────────────────────────────────────
 
+    def list_notes(self, campaign_id: int) -> list:
+        return self._get_all(f"/campaigns/{campaign_id}/notes")
+
     def create_note(self, campaign_id: int, name: str, **kwargs) -> dict:
         return self._post(f"/campaigns/{campaign_id}/notes", {"name": name, **kwargs})["data"]
+
+    # ── Paginated list helpers (full-campaign pulls) ──────────────────────────
+
+    def list_all(self, campaign_id: int, entity_type: str) -> list:
+        """Return every record of `entity_type` for a campaign, all pages.
+
+        entity_type: one of locations, characters, organisations, events, notes.
+        """
+        return self._get_all(f"/campaigns/{campaign_id}/{entity_type}")
 
     # ── Tags ──────────────────────────────────────────────────────────────────
 

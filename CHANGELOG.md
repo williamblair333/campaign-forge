@@ -6,6 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-13 — Phase 5 (start): Kanka CE → world_state.md grounding bridge
+
+### Added
+- **`kanka_sync.py`** — pulls every entity for a Kanka CE campaign and renders a CampaignGenerator-shaped `world_state.md` grounding doc (`## NPCs / ## Factions / ## Locations / ## World Events / ## Threads`), matching the profile layout `synthesise_world_state.py` emits. Kanka `characters → NPCs`, `organisations → Factions`, `locations → Locations`, `events → World Events`, `notes → Threads & Mysteries`. Stdlib HTML→text strip of Kanka's HTML `entry` fields (no bs4/bleach dep). `--output` is required and never defaults to a canonical doc (mirrors `synthesise_world_state.py` overwrite safety); `--stdout` for preview; `is_private` entities skipped unless `--include-private`. Verified end-to-end against live Kanka CE campaign 1 ("The Shattered Realm").
+- **`kanka_client.py`** — additive: `_get_all()` follows Kanka's `links.next` pagination (list endpoints page at 30; a >30-entity campaign was silently truncated at page 1), `list_events()`, `list_notes()`, and `list_all(campaign_id, entity_type)`. Existing single-page `list_*` methods unchanged (backward compatible).
+
+### Changed
+- **`.gitignore`** — ignore `reviews/` (exploratory writeups / design scratch, not shipped).
+
+---
+
 ## 2026-06-13 — Retrieval-stack integration: jcodemunch index, memweave access, /understand graph
 
 ### Added
