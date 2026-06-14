@@ -5,7 +5,6 @@ from table.gm_agent import GMTurn
 from table.player_agent import PlayerTurn
 from table.combat import CombatState, Combatant
 from table.personas import PHASE_A_PERSONAS
-from table.dice import RollRequest
 from table.transcript import Transcript
 
 
