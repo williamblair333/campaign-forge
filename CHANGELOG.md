@@ -6,6 +6,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-14 — FMG headless map-gen (pinned v1.99) + RAG hybrid rerank
+
+### Added
+- **`scripts/fmg-generate.py`** — headless (Playwright) FMG map generation, closing the "FMG has no REST API" gap. Loads a locally-served FMG with a `--seed`, waits for the cell graph, then serializes. `--format json` (default) emits `{info, pack:{burgs, states}}` — exactly what `map_tools.py` parses; `--format map` emits FMG's native `.map`. Isolated `.venv-fmg` (`requirements-fmg.txt`, pinned `playwright`). Verified end-to-end: seed 1234 → 137 KB JSON → `map_tools sync --dry-run` = 25 states → organisations, 286 burgs → locations (campaign 1). (PR #19)
+- **`rag/query.py` hybrid rerank** — `search()` pulls `RERANK_CANDIDATES` (20) by vector then re-scores `ALPHA*vec_sim + (1-ALPHA)*lexical_overlap`, keeping the top-k; lifts the named statblock above generic rules. Vector-dominant (`alpha=0.7`); `RAG_RERANK_CANDIDATES=0` disables. `test_rag_query.py` (6 cases). (PR #18)
+
+### Fixed / Changed
+- **`scripts/fmg-setup.sh`** — pinned to FMG **v1.99**. Upstream FMG (v1.100+) is a Vite/TS rewrite (Node ≥24) with `index.html` under `src/`; the static nginx serve returned **403**. Now re-checks-out an existing newer clone to the tag and guards root `index.html` before serving.
+- **Corrected a long-standing doc error:** a real FMG `.map` is a custom pipe-delimited format, NOT JSON, so `map_tools.py` (which `json.load`s `{pack:{burgs,states}}`) cannot parse it — the old manual "Save As .map → sync" path never worked. `fmg-generate.py --format json` is the working bridge. (`map_tools.py`'s own docstring inaccuracy left as a noted follow-up.)
+- **`.gitignore`** — `.venv-fmg/`, `maps/`, `Fantasy-Map-Generator/`.
+
+### Decided (not built)
+- **`foundryvtt-rest-api`** — skipped (user decision): the MCP bridge already provides Foundry integration; a redundant REST module + relay in the live campaign world is new surface for no new capability.
+
+---
+
 ## 2026-06-14 — RAG: layout-aware chunking (statblock bleed fixed)
 
 ### Changed
