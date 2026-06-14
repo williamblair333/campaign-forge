@@ -1,0 +1,11 @@
+# Headless FMG map generation (scripts/fmg-generate.py). Isolated venv:
+#   python3 -m venv .venv-fmg
+#   .venv-fmg/bin/pip install -r requirements-fmg.txt
+#   .venv-fmg/bin/playwright install chromium      # downloads the browser (~150 MB)
+#
+# If headless launch reports missing system libs (libnss3, libatk, …):
+#   sudo .venv-fmg/bin/playwright install-deps
+#
+# This drives the static FMG v1.99 served by scripts/fmg-setup.sh; it does not
+# touch the rest of the stack, so it lives in its own venv.
+playwright>=1.40,<2
