@@ -6,6 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-14 — RAG: layout-aware chunking (statblock bleed fixed)
+
+### Changed
+- **`rag/ingest.py`** — replaced flat `get_text("text")` + fixed char-windows with **column-aware extraction** (`order_blocks()`: read the left column top-to-bottom then the right; full-width titles act as flow breaks between vertical bands) and **boundary-aware packing** (`pack_chunks()`: fill to `RAG_CHUNK_CHARS` but break only on paragraph boundaries so a statblock stays in one chunk; oversized paragraphs fall back to `_chunks()` windows). `extract_page_text()` wires `get_text("blocks")` → `order_blocks`. (PR #16)
+- Live index rebuilt (1761 chunks). Before/after on the same query: "Adult Red Dragon breath weapon" previously returned a chunk that bled into the **Young Red Dragon** statblock (AC 18 / HP 178 — wrong creature); after, the top hit is the **Adult Red Dragon**'s own contiguous block (AC 19 / HP 256). An algorithm change requires `ingest --rebuild`, not an append (documented in `rag/README.md`).
+
+### Added
+- **`test_rag_ingest.py`** — 9 cases (two-column ordering, full-width header bands, single column, paragraph packing, statblock-whole, oversized-paragraph fallback). Pure functions, no Ollama/PDF needed (run under `.venv-rag`).
+
+---
+
 ## 2026-06-14 — Phase 6: Kanka sync exposed as MCP tools
 
 ### Added
