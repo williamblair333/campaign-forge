@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-14 — Phase 6: Kanka sync exposed as MCP tools
+
+### Added
+- **`kanka_mcp.py`** — a FastMCP server exposing the Phase 5 sync engine to a Claude client: `kanka_pull` (Kanka → world_state.md, read-only), `kanka_push_preview` (DRY RUN create/update/skip plan — safe default), `kanka_push_apply` (commit; never deletes, skip-if-unchanged, continue-on-error; preview-first, explicit). The FastMCP import is guarded (lazy in `build_server`) so the core functions import and unit-test without the `mcp` package; tool wrappers return clean errors (missing `KANKA_TOKEN` / input file) and surface raw `create/update/skip/failed` counts. (PR #14)
+- **`requirements-mcp.txt`** — pins `mcp[cli]>=1.2,<2` (FastMCP import path has moved across majors); install into a gitignored `.venv-mcp/`.
+- **`.mcp.json.example`** — registration template; `KANKA_TOKEN` must be passed in the server `env` block (MCP servers don't inherit the shell `.env`).
+- **`test_kanka_mcp.py`** — 5 cases. Server build verified under a real `mcp` install (registers all 3 tools); live read-only pull + preview = `skip=4` (round-trip lossless through the MCP layer).
+
+### Confirmed / decided (no code change)
+- **3 of the 4 named Phase 6 tools already existed** in CampaignGenerator's `mcp_server.py`: `get_world_state`, `get_campaign_state`, and `run_prep` (as `session_prep`) — alongside ~20 other tools (query_lore, rpg_search, mempalace search, npc_table, dossier proposer).
+- **`run_session_pipeline` intentionally NOT built.** CampaignGenerator's `sd_*` post-session pipeline is deliberately human-gated (`docs/cli/session_doc_pipeline.md`: every stage boundary is a `HUMAN REVIEW` checkpoint; the monolith was split into stages to enforce them; no pipeline-runner ships by design). Auto-chaining would violate that invariant, burn LLM tokens on unreviewed plans, and require guessing per-session args in a third-party repo. The "Claude drives sync" intent is served on the campaign-forge side by `kanka_mcp.py`.
+
+---
+
 ## 2026-06-14 — Phase 5 COMPLETE: world_state.md → Kanka CE push-back; prep.py grounding confirmed
 
 ### Added

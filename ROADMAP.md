@@ -36,22 +36,25 @@
 - `kanka_push.py` — push an edited `world_state.md` back to Kanka CE: parse section-profile → match by name → create/update (PR #12). Dry-run by default, `--apply` commits, never deletes; skip-if-unchanged (no HTML clobber); continue-on-error. Generic `KankaClient.create()`/`update()`. 19 pytest cases. Round-trip verified lossless against live campaign 1.
 - `prep.py` reads `world_state.md` as a grounding source — already wired via `config.yaml` (`world_state → docs/world_state.md`); no CampaignGenerator change needed. Post-session update step = `kanka_push.py --apply` after the distill/synthesise pipeline regenerates the doc.
 
+### Phase 6 — MCP servers ✅ (2026-06-14)
+- **campaign-forge `kanka_mcp.py`** — FastMCP server exposing the Kanka sync engine: `kanka_pull` (read-only), `kanka_push_preview` (dry-run), `kanka_push_apply` (commit; never deletes). Guarded FastMCP import (core unit-tested without `mcp`); pinned `requirements-mcp.txt`; `.mcp.json.example`. 5 tests; server build + live pull verified. (PR #14)
+- **CampaignGenerator `mcp_server.py`** — the named tools already existed: `get_world_state`, `get_campaign_state`, `run_prep` (= `session_prep`), plus ~20 more.
+- **`run_session_pipeline` — intentionally not built.** CG's `sd_*` pipeline is deliberately human-gated (no pipeline-runner by design; see `docs/cli/session_doc_pipeline.md`). Auto-chaining would bypass the review gates and burn tokens on unreviewed plans. Per-stage explicitly-invoked tools are the path if CG-side automation is wanted later.
+
 ---
 
 ## In Progress
 
-_(none — Phase 6 next)_
+_(none)_
 
 ---
 
 ## Planned
 
-### Phase 6 — MCP server for CampaignGenerator
-- Extend `mcp_server.py` in CampaignGenerator to expose:
-  - `run_prep` — trigger prep pipeline from Claude Desktop
-  - `run_session_pipeline` — trigger full post-session pipeline
-  - `get_world_state` — return current grounding docs
-  - `get_campaign_state` — return current campaign state
+### Next candidates
+- Layout-aware RAG chunking (Phase 4 follow-up) for cleaner statblock retrieval.
+- Per-stage CampaignGenerator MCP tools (gate-respecting) — only if Claude-driven post-session automation is wanted.
+- Upstream the 3 Kanka CE source patches (DomainService, filesystems.php, docker-compose) as PRs.
 
 ---
 

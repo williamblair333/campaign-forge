@@ -4,7 +4,7 @@
 
 campaign-forge is an infrastructure and integration layer that lets a Dungeon Master use Claude to build and maintain a living campaign world — creating NPCs, locations, factions, and timelines in a self-hosted world-state store, generating maps, running sessions through a VTT, and automatically processing session transcripts back into structured lore.
 
-> **Status:** Phase 5 complete — Kanka CE, world builder, map tools, Foundry VTT (smoke-tested), a local statblock RAG harness, and a bidirectional Kanka ⇄ CampaignGenerator grounding sync all running. Next: Phase 6 (a CampaignGenerator MCP server).
+> **Status:** Phase 6 complete — Kanka CE, world builder, map tools, Foundry VTT (smoke-tested), a local statblock RAG harness, a bidirectional Kanka ⇄ CampaignGenerator grounding sync, and an MCP server that drives that sync from Claude, all running.
 
 ---
 
@@ -22,7 +22,8 @@ campaign-forge is an infrastructure and integration layer that lets a Dungeon Ma
 | Kanka → grounding doc (pull) | `kanka_sync.py` → `world_state.md` | ✅ Working |
 | Grounding doc → Kanka (push-back) | `kanka_push.py` (create/update, dry-run by default) | ✅ Working |
 | Campaign prep grounding | CampaignGenerator `prep.py` reads `world_state.md` | ✅ Wired |
-| Post-session narrative generation | CampaignGenerator | 🔜 Phase 6 |
+| Kanka sync as Claude MCP tools | `kanka_mcp.py` (pull / push-preview / push-apply) | ✅ Working |
+| Post-session narrative generation | CampaignGenerator `mcp_server.py` (human-gated) | ✅ Exists |
 
 ---
 
