@@ -4,7 +4,7 @@
 
 campaign-forge is an infrastructure and integration layer that lets a Dungeon Master use Claude to build and maintain a living campaign world — creating NPCs, locations, factions, and timelines in a self-hosted world-state store, generating maps, running sessions through a VTT, and automatically processing session transcripts back into structured lore.
 
-> **Status:** Phase 4 complete — Kanka CE, world builder, map tools, Foundry VTT (smoke-tested), and a local statblock RAG harness all running. Building toward the full session pipeline (Phase 5: CampaignGenerator ↔ Kanka sync).
+> **Status:** Phase 5 complete — Kanka CE, world builder, map tools, Foundry VTT (smoke-tested), a local statblock RAG harness, and a bidirectional Kanka ⇄ CampaignGenerator grounding sync all running. Next: Phase 6 (a CampaignGenerator MCP server).
 
 ---
 
@@ -19,8 +19,10 @@ campaign-forge is an infrastructure and integration layer that lets a Dungeon Ma
 | Virtual tabletop | Foundry VTT 14.363 (self-hosted) | ✅ Running |
 | VTT ↔ Claude MCP bridge | `foundry-vtt-mcp` (+ `delete-actors`) | ✅ Smoke-tested |
 | Local 5e rules / statblock RAG | in-repo `rag/` (GPU Ollama + LanceDB, SRD 5.2.1) | ✅ Working |
-| Campaign prep pipeline | CampaignGenerator integration | 🔜 Phase 5 |
-| Post-session narrative generation | CampaignGenerator | 🔜 Phase 5 |
+| Kanka → grounding doc (pull) | `kanka_sync.py` → `world_state.md` | ✅ Working |
+| Grounding doc → Kanka (push-back) | `kanka_push.py` (create/update, dry-run by default) | ✅ Working |
+| Campaign prep grounding | CampaignGenerator `prep.py` reads `world_state.md` | ✅ Wired |
+| Post-session narrative generation | CampaignGenerator | 🔜 Phase 6 |
 
 ---
 

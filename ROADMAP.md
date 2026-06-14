@@ -31,15 +31,16 @@
 - `rag/ingest.py` + `rag/query.py`; reusable `search`/`answer`; 1,596 chunks; retrieval + grounded answers verified
 - Follow-up: layout-aware chunking for cleaner statblock retrieval
 
+### Phase 5 — CampaignGenerator integration ✅ (2026-06-14)
+- `kanka_sync.py` — pull world_state from Kanka CE → write `world_state.md` (PR #11; verified vs live campaign 1). Paginated `kanka_client._get_all`.
+- `kanka_push.py` — push an edited `world_state.md` back to Kanka CE: parse section-profile → match by name → create/update (PR #12). Dry-run by default, `--apply` commits, never deletes; skip-if-unchanged (no HTML clobber); continue-on-error. Generic `KankaClient.create()`/`update()`. 19 pytest cases. Round-trip verified lossless against live campaign 1.
+- `prep.py` reads `world_state.md` as a grounding source — already wired via `config.yaml` (`world_state → docs/world_state.md`); no CampaignGenerator change needed. Post-session update step = `kanka_push.py --apply` after the distill/synthesise pipeline regenerates the doc.
+
 ---
 
 ## In Progress
 
-### Phase 5 — CampaignGenerator integration
-- [x] `kanka_sync.py` — pull world_state from Kanka CE → write `world_state.md` (2026-06-13; verified vs live campaign 1). Paginated `kanka_client._get_all`.
-- [ ] Post-session: push updated NPC/location states back to Kanka CE
-- [ ] `prep.py` reads from Kanka CE as a grounding source
-- [ ] Post-session Kanka update step wired after `distill.py` runs
+_(none — Phase 6 next)_
 
 ---
 

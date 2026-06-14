@@ -1,7 +1,7 @@
 # campaign-forge — Session Handoff
 
-**Date:** 2026-06-07
-**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed and MCP bridge auto-detect deployed. **Smoke tests PASSED 2026-06-13** — full Claude→bridge→Foundry round-trip verified (get-world-info, list-scenes, created NPC actor from SRD compendium, read back full statblock). Docker Port Registry established and all inter-project port conflicts resolved (2026-06-07); dcup `up -f` flag-order bug fixed 2026-06-13. **Phase 4 (local RAG) DONE 2026-06-13** — in-repo `rag/` over SRD 5.2.1 on GPU Ollama; retrieval + grounded answers work, chunking quality tuning pending. **Phase 5 STARTED 2026-06-13** — `kanka_sync.py` pulls Kanka CE → CampaignGenerator-shaped `world_state.md` grounding doc (paginated `kanka_client._get_all`; verified vs live campaign 1). Remaining Phase 5: post-session push back to Kanka, wire `prep.py` to read the grounding doc. Also explored an **autonomous AI table** (AI GM + distinct AI players, optional voice) — writeup in `reviews/` (gitignored), logged as a post-Phase-6 research track in ROADMAP.
+**Date:** 2026-06-14
+**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed and MCP bridge auto-detect deployed. **Smoke tests PASSED 2026-06-13** — full Claude→bridge→Foundry round-trip verified (get-world-info, list-scenes, created NPC actor from SRD compendium, read back full statblock). Docker Port Registry established and all inter-project port conflicts resolved (2026-06-07); dcup `up -f` flag-order bug fixed 2026-06-13. **Phase 4 (local RAG) DONE 2026-06-13** — in-repo `rag/` over SRD 5.2.1 on GPU Ollama; retrieval + grounded answers work, chunking quality tuning pending. **Phase 5 COMPLETE 2026-06-14** — `kanka_sync.py` pulls Kanka CE → `world_state.md` (PR #11); `kanka_push.py` pushes an edited `world_state.md` back into Kanka (create/update, dry-run by default, never deletes — PR #12); and `prep.py` already reads `world_state.md` as a required grounding doc (config-declared, no CampaignGenerator change needed). The Kanka ⇄ CampaignGenerator sync loop is closed. Also explored an **autonomous AI table** (AI GM + distinct AI players, optional voice) — writeup in `reviews/` (gitignored), logged as a post-Phase-6 research track in ROADMAP. **Next: Phase 6** — extend CampaignGenerator's `mcp_server.py` (run_prep / run_session_pipeline / get_world_state / get_campaign_state).
 **Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment → world builder + map tools → Foundry VTT setup → Foundry WebSocket debugging → Foundry join page WebGL investigation
 
 ---
@@ -155,12 +155,11 @@ POST-SESSION
 - [ ] **Before commit:** add `.gitignore` for `rag/lancedb/`, `rag/corpus/*.pdf`, `.venv-rag/` (large/re-creatable; don't commit).
 - [ ] **Post-reboot:** Ollama container may be down — `docker start open-webui-ollama-1` (queries fail loudly if it's not up).
 
-### Phase 5 — CampaignGenerator integration
-- [ ] Add Kanka CE sync to CampaignGenerator:
-  - `kanka_sync.py` — pull world_state from Kanka CE → write world_state.md
-  - Post-session: push updated NPC/location states back to Kanka CE
-- [ ] Wire prep.py to read from Kanka CE as a grounding source
-- [ ] Build the post-session Kanka update step (after distill.py runs)
+### Phase 5 — CampaignGenerator integration ✅ DONE (2026-06-14)
+- [x] `kanka_sync.py` — pull world_state from Kanka CE → write world_state.md (PR #11).
+- [x] `kanka_push.py` — push an edited world_state.md back to Kanka CE: parse the section-profile doc → match by name → create/update (PR #12). **Dry-run by default, `--apply` commits, never deletes**, skip-if-unchanged (no HTML clobber), continue-on-error. Generic `KankaClient.create()`/`update()` added. 19 pytest cases.
+- [x] Wire prep.py to read world_state.md — **no code change needed**: `config/config.yaml` already declares `world_state → docs/world_state.md` and `prep.py`/`assemble_docs` loads it as a *required* grounding doc. Integration is operational: `kanka_sync.py --output docs/world_state.md` (in the campaign workspace) feeds the slot; `kanka_push.py --input docs/world_state.md --apply` pushes session changes back.
+- [x] Post-session Kanka update step = `kanka_push.py --apply` after the distill/synthesise pipeline regenerates `world_state.md`.
 
 ### Phase 6 — MCP server for CampaignGenerator itself
 - [ ] Extend `mcp_server.py` in CampaignGenerator to expose:
@@ -235,9 +234,14 @@ bash scripts/foundry-setup.sh status
 #   After any foundry-vtt-mcp re-clone: git apply patches/delete-actors.patch,
 #   rebuild, redeploy dist, then Foundry F5 + Claude /mcp reconnect.
 #
-# START HERE: Phase 5 — CampaignGenerator ↔ Kanka sync (kanka_sync.py: pull
-#   world_state from Kanka CE → world_state.md; wire prep.py to read it; push
-#   post-session NPC/location updates back via kanka_client.py).
+# Phase 5 DONE: Kanka ⇄ CampaignGenerator loop closed.
+#   Refresh grounding:  python kanka_sync.py --campaign 1 --output docs/world_state.md
+#   Push session edits: python kanka_push.py --campaign 1 --input docs/world_state.md          # dry run
+#                       python kanka_push.py --campaign 1 --input docs/world_state.md --apply   # commit
+#   (run from the campaign workspace; KANKA_TOKEN must be exported — `set -a; source .env; set +a`)
+#
+# START HERE: Phase 6 — extend CampaignGenerator mcp_server.py to expose
+#   run_prep / run_session_pipeline / get_world_state / get_campaign_state.
 ```
 
 ## Key Infrastructure Notes

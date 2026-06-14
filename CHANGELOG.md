@@ -6,6 +6,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-14 — Phase 5 COMPLETE: world_state.md → Kanka CE push-back; prep.py grounding confirmed
+
+### Added
+- **`kanka_push.py`** — the inverse of `kanka_sync.py` and the second half of Phase 5. Deterministically parses a section-profile `world_state.md` back into entities (no LLM) and reconciles them with the live campaign: match by name (exact, case-insensitive) against Kanka, then **create / update / skip**. **Dry-run by default; `--apply` commits; never deletes.** Skip-if-unchanged normalizes Kanka's stored HTML through the same `html_to_text` as the pull, so a plain-text round-trip never clobbers richer entries. Continue-on-error per entity (a 422 doesn't abort the batch; a re-run retries). Entity boundaries gate on the full `**Name**` header shape, so inline/leading markdown bold in a body never splits an entity. Kanka's own entity ids are the dedup key — no local manifest to drift.
+- **`kanka_client.py`** — additive: generic `create(campaign_id, entity_type, **fields)` and `update(campaign_id, entity_type, record_id, **fields)` (PATCH) for uniform entity-type dispatch. Existing per-type `create_*` / `list_*` methods unchanged.
+- **`test_kanka_push.py`** — 19 pytest cases: parser flag/title/date/body coverage, round-trip against `kanka_sync.entity_block`, plan/apply create-update-skip, case-insensitive match, field whitelist, continue-on-error, bold-in-body boundary.
+
+### Confirmed (no code change)
+- **`prep.py` already reads `world_state.md`** — the remaining Phase 5 item needed no CampaignGenerator edit. `config/config.yaml` lists `world_state → docs/world_state.md` in `documents`, and `assemble_user_prompt → assemble_docs` loads every configured doc (`load_file` hard-exits if a configured doc is missing → world_state is a *required* grounding source). Integration is operational: in the campaign workspace run `kanka_sync.py --output docs/world_state.md` to feed the slot, then `kanka_push.py --input docs/world_state.md --apply` to push session changes back. Loop closed.
+
+### Verified
+- `pytest`: 19 passed. Live dry-run vs Kanka campaign 1: pull→push = `skip=4 / create=0 / update=0` (round-trip lossless); an edited doc plans exactly **1 update + 1 create**, correctly classified under `## NPCs`.
+
+---
+
 ## 2026-06-13 — Phase 5 (start): Kanka CE → world_state.md grounding bridge
 
 ### Added
