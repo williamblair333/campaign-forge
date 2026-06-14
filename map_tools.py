@@ -1,23 +1,28 @@
 #!/usr/bin/env python3
 """
-map_tools.py — Parse Azgaar Fantasy Map Generator .map exports and sync to Kanka CE.
+map_tools.py — Parse a FMG burgs/states JSON export and sync it to Kanka CE.
 
 Commands:
-    python3 map_tools.py parse  map.map                        # show what's in the file
-    python3 map_tools.py sync   map.map                        # push to Kanka CE
-    python3 map_tools.py sync   map.map --dry-run              # preview without pushing
-    python3 map_tools.py sync   map.map --campaign-id 1 --yes
+    python3 map_tools.py parse  world.json                     # show what's in the file
+    python3 map_tools.py sync   world.json                     # push to Kanka CE
+    python3 map_tools.py sync   world.json --dry-run           # preview without pushing
+    python3 map_tools.py sync   world.json --campaign-id 1 --yes
 
-About the .map format:
-    FMG saves maps as JSON. Key arrays (all 1-indexed, index 0 is null):
+Expected input format:
+    JSON with FMG's in-memory map data — produced by `scripts/fmg-generate.py
+    --format json` (the default), which serializes:
+      {"info": {seed, width, height, version},
+       "pack": {"burgs": [...], "states": [...]}}    (arrays 1-indexed; [0] is null)
       pack.burgs  — settlements: name, x, y, state, capital, type, population
       pack.states — political entities: name, type, color, capital (burg index)
 
+    NOTE: a raw FMG ".map" (File → Save As → .map) is a custom pipe-delimited
+    format, NOT JSON — this tool cannot parse it. Use the json export above.
+
 Workflow:
-    1. bash scripts/fmg-setup.sh           # start FMG at http://localhost:8082
-    2. Open browser, generate / load map
-    3. File → Save As → .map
-    4. python3 map_tools.py sync map.map
+    1. bash scripts/fmg-setup.sh                                # serve FMG (v1.99) at :8082
+    2. .venv-fmg/bin/python scripts/fmg-generate.py --seed 1234 --out maps/world.json
+    3. python3 map_tools.py sync maps/world.json --dry-run      # preview, then drop --dry-run
 
 Env vars:
     KANKA_TOKEN     — required for sync
