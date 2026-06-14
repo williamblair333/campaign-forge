@@ -142,8 +142,9 @@ class CLIGMAgent:
         result = subprocess.run(
             ["claude", "-p", user,
              "--system-prompt", system,
-             "--tools", ""],
-            capture_output=True, text=True, timeout=120,
+             "--tools", "",
+             "--safe-mode"],   # skips MCP servers / plugins / hooks — avoids 120s startup
+            capture_output=True, text=True, timeout=180,
         )
         if result.returncode != 0:
             raise RuntimeError(
