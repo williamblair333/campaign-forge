@@ -123,6 +123,28 @@ class KankaClient:
         """
         return self._get_all(f"/campaigns/{campaign_id}/{entity_type}")
 
+    # ── Generic create / update (uniform dispatch for sync tools) ─────────────
+
+    def create(self, campaign_id: int, entity_type: str, **fields) -> dict:
+        """Create one `entity_type` record. The push-back half of Phase 5.
+
+        Generic counterpart to the per-type create_* methods, so a sync loop can
+        dispatch by entity_type string without a method table.
+        `fields` must include `name`.
+        """
+        return self._post(f"/campaigns/{campaign_id}/{entity_type}", fields)["data"]
+
+    def update(self, campaign_id: int, entity_type: str, record_id: int,
+               **fields) -> dict:
+        """PATCH one existing `entity_type` record (post-session canon update).
+
+        entity_type: locations, characters, organisations, events, notes.
+        Only the supplied `fields` are changed; omitted fields keep their value.
+        """
+        return self._patch(
+            f"/campaigns/{campaign_id}/{entity_type}/{record_id}", fields
+        )["data"]
+
     # ── Tags ──────────────────────────────────────────────────────────────────
 
     def create_tag(self, campaign_id: int, name: str, **kwargs) -> dict:
