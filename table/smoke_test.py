@@ -112,7 +112,7 @@ def run() -> None:
             print(e, file=sys.stderr)
         sys.exit(1)
     else:
-        print(f"smoke_test: all checks passed")
+        print("smoke_test: all checks passed")
         sys.exit(0)
 
 
