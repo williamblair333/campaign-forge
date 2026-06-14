@@ -20,13 +20,12 @@ DIRS=(bestiary spells items backgrounds races classes)
 echo "Fetching 5etools data → $DEST ..." >&2
 
 git clone --depth 1 --filter=blob:none --sparse "$REPO" "$TMP/5etools" >&2
-cd "$TMP/5etools"
-git sparse-checkout set "${DIRS[@]}" >&2
+git -C "$TMP/5etools" sparse-checkout set "${DIRS[@]}" >&2
 
 # Validate all expected directories are present before touching $DEST
 MISSING=()
 for dir in "${DIRS[@]}"; do
-    [ -d "$dir" ] || MISSING+=("$dir")
+    [ -d "$TMP/5etools/$dir" ] || MISSING+=("$dir")
 done
 if [ "${#MISSING[@]}" -gt 0 ]; then
     echo "Error: mirror missing expected directories: ${MISSING[*]}" >&2
@@ -37,7 +36,7 @@ fi
 # Stage copies first (no partial state if interrupted), then swap into $DEST
 mkdir -p "$DEST"
 for dir in "${DIRS[@]}"; do
-    cp -r "$dir" "$TMP/staged-$dir"
+    cp -r "$TMP/5etools/$dir" "$TMP/staged-$dir"
 done
 for dir in "${DIRS[@]}"; do
     rm -rf "$DEST/$dir"
