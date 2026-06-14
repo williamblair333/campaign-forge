@@ -30,8 +30,14 @@ class TableOrchestrator:
         self.players = {p.persona.name: p for p in players}
         self.use_foundry = use_foundry
 
-    def run_encounter(self, combat: CombatState) -> Transcript:
+    def run_encounter(self, combat: CombatState, *, stream: bool = False) -> Transcript:
         transcript = Transcript()
+
+        def _emit(record: TurnRecord) -> None:
+            transcript.append(record)
+            if stream:
+                prefix = f"[R{record.round}][{record.actor}]"
+                print(f"{prefix} {record.text}", flush=True)
 
         while combat.end_condition() is None:
             actor = combat.current_actor()
@@ -43,7 +49,7 @@ class TableOrchestrator:
                     last_action=f"Monster {actor.name} acts",
                 )
                 _apply_scene_update(combat, gm_turn.scene_update)
-                transcript.append(TurnRecord(
+                _emit(TurnRecord(
                     round=combat.round, actor="GM",
                     kind="gm_narration", text=gm_turn.narration,
                     metadata={"next_actor": gm_turn.next_actor,
@@ -51,7 +57,7 @@ class TableOrchestrator:
                 ))
                 if gm_turn.roll_request:
                     roll = request_roll(gm_turn.roll_request, use_foundry=self.use_foundry)
-                    transcript.append(TurnRecord(
+                    _emit(TurnRecord(
                         round=combat.round, actor=gm_turn.roll_request.actor,
                         kind="roll_result",
                         text=f"{gm_turn.roll_request.purpose}: {roll}",
@@ -64,14 +70,14 @@ class TableOrchestrator:
                     continue
 
                 gm_cue = self.gm.narrate(combat.to_dict(), tail, cue_actor=actor.name)
-                transcript.append(TurnRecord(
+                _emit(TurnRecord(
                     round=combat.round, actor="GM",
                     kind="gm_narration", text=gm_cue.narration,
                     metadata={"next_actor": actor.name},
                 ))
 
                 player_turn = player.take_turn(combat.to_dict(), gm_cue.narration, tail)
-                transcript.append(TurnRecord(
+                _emit(TurnRecord(
                     round=combat.round, actor=actor.name,
                     kind="player_action", text=player_turn.speech,
                     metadata={"action_type": player_turn.action_type,
@@ -86,7 +92,7 @@ class TableOrchestrator:
                         purpose=player_turn.action_type,
                     )
                     roll = request_roll(roll_req, use_foundry=self.use_foundry)
-                    transcript.append(TurnRecord(
+                    _emit(TurnRecord(
                         round=combat.round, actor=actor.name,
                         kind="roll_result",
                         text=f"{player_turn.action_type}: {roll}",
@@ -103,7 +109,7 @@ class TableOrchestrator:
                     combat.to_dict(), transcript.tail(6), last_action=last_action
                 )
                 _apply_scene_update(combat, gm_followup.scene_update)
-                transcript.append(TurnRecord(
+                _emit(TurnRecord(
                     round=combat.round, actor="GM",
                     kind="gm_narration", text=gm_followup.narration,
                     metadata={"scene_update": gm_followup.scene_update},
@@ -116,7 +122,7 @@ class TableOrchestrator:
             combat.to_dict(), transcript.tail(6),
             last_action=f"Encounter ended: {end}",
         )
-        transcript.append(TurnRecord(
+        _emit(TurnRecord(
             round=combat.round, actor="GM",
             kind="gm_narration", text=final.narration,
             metadata={"end_condition": end},
@@ -146,6 +152,8 @@ def main() -> None:
         "--gm-backend", choices=["sdk", "cli", "ollama", "auto"], default="auto",
         help="GM backend: sdk (ANTHROPIC_API_KEY), cli (claude CLI/Max), ollama (local), auto (detect)",
     )
+    parser.add_argument("--stream", action="store_true",
+                        help="Print each turn to stdout as it happens")
     args = parser.parse_args()
 
     personas = PHASE_A_PERSONAS if args.phase == "A" else PHASE_B_PERSONAS
@@ -155,7 +163,7 @@ def main() -> None:
     combat = _build_goblin_ambush()
 
     print(f"Starting Phase {args.phase}: {len(personas)} players vs Goblin Ambush")
-    transcript = orch.run_encounter(combat)
+    transcript = orch.run_encounter(combat, stream=args.stream)
 
     md = transcript.to_markdown()
     with open(args.out, "w") as f:

@@ -44,6 +44,23 @@ def test_roll_request_fields():
     assert req.purpose == "spell damage"
 
 
+def test_local_roll_d20_without_leading_digit():
+    for _ in range(20):
+        r = local_roll("d20")
+        assert 1 <= r <= 20
+
+
+def test_local_roll_d20_plus_modifier_without_leading_digit():
+    for _ in range(20):
+        r = local_roll("d20+4")
+        assert 5 <= r <= 24
+
+
+def test_local_roll_zero_dice_raises():
+    with pytest.raises(ValueError, match="Invalid roll formula"):
+        local_roll("0d20")
+
+
 def test_request_roll_foundry_fallback_uses_local():
     req = RollRequest(actor="Brakka", formula="1d20", purpose="attack")
     # NotImplementedError (stub) should silently fall back

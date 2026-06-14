@@ -104,6 +104,15 @@ def test_player_roll_uses_gm_cue_formula():
     assert player_rolls[0].metadata["formula"] == "1d20+5"
 
 
+def test_run_encounter_stream_prints_turns(capsys):
+    gm = _mock_gm()
+    players = [_mock_player(p) for p in PHASE_A_PERSONAS]
+    orch = TableOrchestrator(gm, players, use_foundry=False)
+    orch.run_encounter(_one_sided_combat(), stream=True)
+    out = capsys.readouterr().out
+    assert "[R" in out  # stream prefix present
+
+
 def test_apply_scene_update_applies_hp_delta():
     combat = CombatState([
         Combatant("Goblin A", 7, 7, 10, is_player=False),

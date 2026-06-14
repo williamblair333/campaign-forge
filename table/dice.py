@@ -13,10 +13,12 @@ class RollRequest:
 
 def local_roll(formula: str) -> int:
     """Parse NdX[+-]Y and return sum. No external dependencies."""
-    match = re.fullmatch(r"(\d+)d(\d+)([+-]\d+)?", formula.strip())
+    match = re.fullmatch(r"(\d*)d(\d+)([+-]\d+)?", formula.strip())
     if not match:
         raise ValueError(f"Invalid roll formula: {formula!r}")
-    n = int(match.group(1))
+    n = int(match.group(1)) if match.group(1) else 1  # d20 → 1d20
+    if n == 0:
+        raise ValueError(f"Invalid roll formula: {formula!r} (0 dice)")
     x = int(match.group(2))
     mod = int(match.group(3)) if match.group(3) else 0
     return sum(random.randint(1, x) for _ in range(n)) + mod
