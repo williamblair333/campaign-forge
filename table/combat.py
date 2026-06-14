@@ -50,9 +50,9 @@ class CombatState:
         """Returns 'party_wins', 'tpk', 'round_limit', or None if combat continues."""
         monsters = [c for c in self.combatants if not c.is_player]
         players = [c for c in self.combatants if c.is_player]
-        if all(m.current_hp <= 0 for m in monsters):
+        if monsters and all(m.current_hp <= 0 for m in monsters):
             return "party_wins"
-        if all(p.current_hp <= 0 for p in players):
+        if players and all(p.current_hp <= 0 for p in players):
             return "tpk"
         if self.round >= self.max_rounds:
             return "round_limit"
