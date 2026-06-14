@@ -51,9 +51,15 @@ _(none)_
 
 ## Planned
 
+### Polish shipped 2026-06-14
+- RAG **layout-aware chunking** (PR #16) + **hybrid rerank** (PR #18).
+- **FMG headless map-gen** pinned to v1.99 (PR #19) — `scripts/fmg-generate.py` (Playwright) → map_tools-compatible JSON → Kanka sync. Closes the "FMG has no REST API" gap.
+- `foundryvtt-rest-api` — **skipped by decision** (MCP bridge already covers Foundry).
+
 ### Next candidates (optional / external — core stack is usable)
-- **Upstream the 3 Kanka CE patches** (DomainService, filesystems.php, docker-compose) as PRs to `kinnewig/kanka-community-edition` — external publishing; needs an explicit go-ahead.
-- Optional: `foundryvtt-rest-api` REST alternative (MCP bridge already works); RAG top-k rerank; Azgaar FMG map-gen REST automation (no REST API today — Playwright/seed-URL build).
+- **Upstream the 3 Kanka CE patches** as PRs to `kinnewig/kanka-community-edition` — external publishing; needs an explicit go-ahead (deferred).
+- Fix `map_tools.py` docstring (".map = JSON" is wrong; json bridge is `fmg-generate.py`).
+- Migrate FMG off the v1.99 pin (Node 24 + Vite build + parser re-verify) only if a newer FMG is wanted.
 - Per-stage CampaignGenerator MCP tools (gate-respecting) — only if Claude-driven CG post-session automation is wanted.
 
 ---
