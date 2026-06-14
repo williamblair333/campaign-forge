@@ -54,3 +54,11 @@ foundry-vtt-mcp/
 
 # ── Claude Code session tooling ───────────────────────────────────────────────
 .claude/
+.understand-anything/
+
+# ── memweave (centralized stack tool — gitignored symlinks into Uncle-J-s-Refinery) ──
+# Single global store at ~/.uncle-j-memory; these are machine-specific symlinks
+# so the documented `mw_search.py` command resolves from this project root too.
+# No trailing slash on scripts/memweave — a trailing slash won't match a symlink.
+.venv-memweave
+scripts/memweave
