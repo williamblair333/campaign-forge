@@ -12,15 +12,41 @@ class RollRequest:
 
 
 def local_roll(formula: str) -> int:
-    """Parse NdX[+-]Y and return sum. No external dependencies."""
-    match = re.fullmatch(r"(\d*)d(\d+)([+-]\d+)?", formula.strip())
-    if not match:
+    """Parse common D&D dice notation and return result. No external dependencies.
+
+    Handles:
+      NdX, dX              — standard (leading 1 implicit)
+      NdX+Y, NdX-Y        — with modifier
+      NdXkh/klK[+-]Y      — keep highest / keep lowest K dice (advantage/disadvantage)
+      NdXdh/dlK[+-]Y      — drop highest / drop lowest K (converted to keep)
+    Case-insensitive; spaces stripped.
+    """
+    f = re.sub(r"\s+", "", formula).lower()
+
+    # keep-highest / keep-lowest: NdXkh/klK[+-]Y
+    m = re.fullmatch(r"(\d*)d(\d+)k([hl])(\d+)([+-]\d+)?", f)
+    if m:
+        n = int(m.group(1)) if m.group(1) else 1
+        x, keep, mod = int(m.group(2)), int(m.group(4)), int(m.group(5) or 0)
+        rolls = sorted([random.randint(1, x) for _ in range(n)], reverse=(m.group(3) == "h"))
+        return sum(rolls[:keep]) + mod
+
+    # drop-highest / drop-lowest: NdXdh/dlK[+-]Y  (convert: drop K → keep n-K)
+    m = re.fullmatch(r"(\d*)d(\d+)d([hl])(\d+)([+-]\d+)?", f)
+    if m:
+        n = int(m.group(1)) if m.group(1) else 1
+        x, drop, mod = int(m.group(2)), int(m.group(4)), int(m.group(5) or 0)
+        rolls = sorted([random.randint(1, x) for _ in range(n)], reverse=(m.group(3) == "l"))
+        return sum(rolls[:max(n - drop, 1)]) + mod
+
+    # standard: NdX[+-]Y
+    m = re.fullmatch(r"(\d*)d(\d+)([+-]\d+)?", f)
+    if not m:
         raise ValueError(f"Invalid roll formula: {formula!r}")
-    n = int(match.group(1)) if match.group(1) else 1  # d20 → 1d20
+    n = int(m.group(1)) if m.group(1) else 1
     if n == 0:
         raise ValueError(f"Invalid roll formula: {formula!r} (0 dice)")
-    x = int(match.group(2))
-    mod = int(match.group(3)) if match.group(3) else 0
+    x, mod = int(m.group(2)), int(m.group(3) or 0)
     return sum(random.randint(1, x) for _ in range(n)) + mod
 
 
@@ -36,7 +62,14 @@ def request_roll(req: RollRequest, *, use_foundry: bool = True) -> int:
                 "Foundry roll failed for %s (%s: %s) — falling back to local",
                 req.actor, type(e).__name__, e,
             )
-    return local_roll(req.formula)
+    try:
+        return local_roll(req.formula)
+    except ValueError:
+        logging.warning(
+            "Unrecognized formula %r for %s — falling back to 1d20",
+            req.formula, req.actor,
+        )
+        return local_roll("1d20")
 
 
 def _foundry_roll(req: RollRequest) -> int:

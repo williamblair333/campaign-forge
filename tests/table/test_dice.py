@@ -61,6 +61,39 @@ def test_local_roll_zero_dice_raises():
         local_roll("0d20")
 
 
+def test_local_roll_advantage_kh1():
+    for _ in range(50):
+        r = local_roll("2d20kh1+4")
+        assert 5 <= r <= 24
+
+
+def test_local_roll_disadvantage_kl1():
+    for _ in range(50):
+        r = local_roll("2d20kl1")
+        assert 1 <= r <= 20
+
+
+def test_local_roll_drop_lowest_dl1():
+    for _ in range(50):
+        r = local_roll("4d6dl1")
+        assert 3 <= r <= 18
+
+
+def test_local_roll_case_insensitive():
+    for _ in range(20):
+        r = local_roll("2D20KH1+3")
+        assert 4 <= r <= 23
+
+
+def test_request_roll_fallback_on_unknown_formula(caplog):
+    import logging
+    req = RollRequest(actor="Brakka", formula="1d20+STR", purpose="attack")
+    with caplog.at_level(logging.WARNING):
+        result = request_roll(req, use_foundry=False)
+    assert 1 <= result <= 20
+    assert "1d20+STR" in caplog.text
+
+
 def test_request_roll_foundry_fallback_uses_local():
     req = RollRequest(actor="Brakka", formula="1d20", purpose="attack")
     # NotImplementedError (stub) should silently fall back
