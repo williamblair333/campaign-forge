@@ -1,0 +1,12 @@
+# 5e MCP server (dnd5e_mcp.py) — isolated from the base / rag / mcp envs.
+#
+# Setup:
+#   python3 -m venv .venv-dnd5e
+#   .venv-dnd5e/bin/pip install -r requirements-dnd5e.txt
+#   bash scripts/dnd5e-fetch.sh   # one-time data fetch; re-run to update
+#   # then register dnd5e_mcp.py via .mcp.json (see .mcp.json.example)
+#
+# Pinned so a future `mcp` major can't silently break server startup.
+mcp[cli]>=1.2,<2
+duckdb>=0.10
+requests>=2.31

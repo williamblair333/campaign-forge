@@ -49,6 +49,9 @@ rag/lancedb/
 rag/corpus/*.pdf
 # keep rag/corpus/ATTRIBUTION.md tracked (not a PDF)
 
+# ── 5e compendium data (dnd5e_mcp.py) — fetch via scripts/dnd5e-fetch.sh ────
+data/dnd5e/
+
 # ── foundry-vtt-mcp (upstream repo — clone separately per SETUP.md §17) ───────
 foundry-vtt-mcp/
 

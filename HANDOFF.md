@@ -74,7 +74,7 @@ The `laravel-boost` MCP server in Kanka CE's `.mcp.json` is a Laravel developer 
 | VTT ↔ Claude MCP bridge | foundry-vtt-mcp | [adambdooley/foundry-vtt-mcp](https://github.com/adambdooley/foundry-vtt-mcp) | ✅ 37 MCP tools |
 | VTT REST API | foundryvtt-rest-api | [ThreeHats/foundryvtt-rest-api](https://github.com/ThreeHats/foundryvtt-rest-api) | ✅ REST |
 | Local AI / lore RAG | dnd-llm-game | [tegridydev/dnd-llm-game](https://github.com/tegridydev/dnd-llm-game) | ✅ FastAPI REST + SSE |
-| 5e rules data (local) | mnehmos.open5e.mcp | [Mnehmos/mnehmos.open5e.mcp](https://github.com/Mnehmos/mnehmos.open5e.mcp) | ✅ MCP (TypeScript) |
+| 5e rules data (local) | dnd5e_mcp.py | self-hosted, full 5etools compendium via DuckDB in-memory | ✅ MCP (Python) |
 | Map generation | Fantasy Map Generator | [Azgaar/Fantasy-Map-Generator](https://github.com/Azgaar/Fantasy-Map-Generator) | ⚠️ Docker, GeoJSON export only |
 | Campaign prep / narrative | CampaignGenerator | `/opt/proj/CampaignGenerator` | ✅ existing |
 
@@ -199,7 +199,7 @@ vendor/bin/sail down
 
 ## Open Questions (still to resolve)
 
-1. **5e data layer** — Design spec complete (PR #24, `docs/superpowers/specs/2026-06-14-dnd5e-data-layer-design.md`). Implementation pending: `dnd5e_mcp.py` FastMCP server + 5etools JSON via DuckDB; retires cloud `mnehmos.open5e.mcp`.
+1. **5e data layer** — ✅ RESOLVED. `dnd5e_mcp.py` FastMCP server (4 tools: `lookup_monster` / `lookup_spell` / `lookup_item` / `search_5e`) loads full 5etools compendium via DuckDB in-memory (4440 monsters, 558 spells, 1773 items). `scripts/dnd5e-fetch.sh` auto-populates `data/dnd5e/` on first run. `mnehmos.open5e.mcp` retired. See spec PR #24 for design rationale.
 2. **Map generation gap** — ✅ RESOLVED (PR #19). Headless Playwright gen ships as `scripts/fmg-generate.py`, pinned to FMG v1.99. v1.99 pin migration deferred indefinitely (needs Node 24 + Vite rebuild; not worth it unless a newer FMG feature is required).
 3. **Sync strategy** — ✅ RESOLVED (Phase 5). Kanka CE is the canonical source of truth. `kanka_sync.py` pulls → `world_state.md`; `kanka_push.py` pushes edits back. Loop is closed.
 4. **Kanka CE upstream patches** — ✅ RESOLVED (2026-06-14). Verified no upstream PRs warranted — minio fix already upstream; isApi removal is deploy-specific. Patches stay local-only.
