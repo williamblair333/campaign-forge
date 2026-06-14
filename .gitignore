@@ -55,6 +55,13 @@ foundry-vtt-mcp/
 # ── Kanka MCP server (kanka_mcp.py) venv — re-creatable from requirements-mcp.txt ──
 .venv-mcp/
 
+# ── FMG headless map-gen venv + generated maps (re-creatable) ─────────────────
+.venv-fmg/
+maps/
+
+# ── Fantasy Map Generator (vendored clone, pinned to v1.99 by fmg-setup.sh) ────
+Fantasy-Map-Generator/
+
 # ── Claude Code session tooling ───────────────────────────────────────────────
 .claude/
 .understand-anything/
