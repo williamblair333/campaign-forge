@@ -1,5 +1,4 @@
 import json
-import os
 import re
 from dataclasses import dataclass
 
@@ -23,7 +22,7 @@ class GMTurn:
 
 class GMAgent:
     def __init__(self, client: anthropic.Anthropic | None = None) -> None:
-        self._client = client or anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        self._client = client or anthropic.Anthropic()
         self._world_state = self._load_world_state()
 
     def narrate(
