@@ -1,5 +1,6 @@
 # table/orchestrator.py
 import argparse
+import logging
 
 from table.combat import CombatState, Combatant
 from table.dice import RollRequest, request_roll
@@ -17,6 +18,9 @@ def _apply_scene_update(state: CombatState, scene_update: dict) -> None:
     for name, conds in scene_update.get("conditions", {}).items():
         for cond in conds:
             state.add_condition(name, cond)
+    for name, conds in scene_update.get("conditions_remove", {}).items():
+        for cond in conds:
+            state.remove_condition(name, cond)
 
 
 class TableOrchestrator:
@@ -56,13 +60,21 @@ class TableOrchestrator:
                                "scene_update": gm_turn.scene_update},
                 ))
                 if gm_turn.roll_request:
-                    roll = request_roll(gm_turn.roll_request, use_foundry=self.use_foundry)
+                    rr = gm_turn.roll_request
+                    roll = request_roll(rr, use_foundry=self.use_foundry)
                     _emit(TurnRecord(
-                        round=combat.round, actor=gm_turn.roll_request.actor,
+                        round=combat.round, actor=rr.actor,
                         kind="roll_result",
-                        text=f"{gm_turn.roll_request.purpose}: {roll}",
-                        metadata={"formula": gm_turn.roll_request.formula, "result": roll},
+                        text=f"{rr.purpose}: {roll}",
+                        metadata={"formula": rr.formula, "result": roll},
                     ))
+                    if rr.target and "damage" in rr.purpose.lower():
+                        try:
+                            combat.apply_hp_delta(rr.target, -roll)
+                        except ValueError:
+                            logging.warning(
+                                "Unknown damage target %r — HP delta not applied", rr.target
+                            )
             else:
                 player = self.players.get(actor.name)
                 if player is None:

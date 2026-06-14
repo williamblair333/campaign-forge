@@ -7,8 +7,9 @@ from dataclasses import dataclass
 @dataclass
 class RollRequest:
     actor: str
-    formula: str   # e.g. "1d20+3"
-    purpose: str   # e.g. "attack roll"
+    formula: str        # e.g. "1d20+3"
+    purpose: str        # e.g. "attack roll"
+    target: str | None = None  # combatant receiving damage; orchestrator auto-applies HP delta
 
 
 def local_roll(formula: str) -> int:

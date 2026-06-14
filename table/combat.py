@@ -46,6 +46,14 @@ class CombatState:
                 return
         raise ValueError(f"Unknown combatant: {target_name!r}")
 
+    def remove_condition(self, target_name: str, condition: str) -> None:
+        for c in self.combatants:
+            if c.name == target_name:
+                if condition in c.conditions:
+                    c.conditions.remove(condition)
+                return
+        raise ValueError(f"Unknown combatant: {target_name!r}")
+
     def end_condition(self) -> str | None:
         """Returns 'party_wins', 'tpk', 'round_limit', or None if combat continues."""
         monsters = [c for c in self.combatants if not c.is_player]
