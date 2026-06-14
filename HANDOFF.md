@@ -245,15 +245,18 @@ bash scripts/foundry-setup.sh status
 # RAG layout-aware chunking (PR #16), FMG headless map-gen pinned to v1.99
 # (PR #19). foundryvtt-rest-api: SKIPPED by decision (MCP bridge already covers it).
 #
-# Remaining backlog (optional / external / research — NOT usage blockers):
-#   - Upstream the 3 Kanka CE patches as PRs to kinnewig/kanka-community-edition
-#     (EXTERNAL publishing — needs explicit go-ahead; user said skip for now).
-#   - Fix map_tools.py docstring (still wrongly says ".map = JSON"; the working
-#     bridge is scripts/fmg-generate.py --format json — see memory note).
-#   - Migrate FMG off the v1.99 pin (needs Node 24 + Vite build + parser re-verify)
-#     only if a newer FMG is wanted.
-#   - Research swing: autonomous AI table (reviews/, gitignored) — gate on the
-#     weekend experiment (1 GM + 2 players, 1 combat, text-only).
+# Remaining backlog (optional / research — NOT usage blockers):
+#   - Kanka CE upstream PRs: RESOLVED 2026-06-14 — verified, NO PR warranted
+#     (minio already fixed upstream via s3→minio endpoint; isApi removal is
+#     deploy-specific). Patches stay local-only. See kanka-upstream-patches-verdict memory.
+#   - map_tools.py docstring: FIXED (PR #21).
+#   - Migrate FMG off the v1.99 pin: NOT worth it now — needs a Node-24 toolchain
+#     (system has 20; no nvm/fnm; apt caps at 20) + Vite build + re-reverse the new
+#     export (the TS rewrite likely moves pack/burgs off global scope, breaking the
+#     clean headless extraction). v1.99 does the job. Defer unless a newer feature is needed.
+#   - Research swing: autonomous AI table (reviews/, gitignored) — user wants it but
+#     wants stable footing first. Gate: run ONE real end-to-end session through the
+#     stack, then the text-only weekend experiment (1 GM + 2 players, 1 combat).
 #
 # FMG headless usage: bash scripts/fmg-setup.sh  (serves v1.99 on :8082)
 #   python3 -m venv .venv-fmg && .venv-fmg/bin/pip install -r requirements-fmg.txt

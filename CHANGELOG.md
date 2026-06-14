@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-14 — map_tools docstring fix; Kanka upstream patches verified (no PR)
+
+### Fixed
+- **`map_tools.py`** — corrected the module docstring: it parses the `{pack:{burgs,states}}` JSON from `scripts/fmg-generate.py --format json`, not a raw FMG `.map` (which is pipe-delimited and unparseable here). The old "Save As .map → sync" workflow never worked. Docstring-only. (PR #21)
+
+### Investigated (no change — verified correct to leave local-only)
+- **Kanka CE upstream patches** — rigorously verified against `kinnewig/kanka-community-edition` `nightly` (default branch). **No upstream PRs warranted:** (1) the `minio`-disk fix is already solved upstream a different way (`FILESYSTEM_DRIVER=s3` with the s3 disk's `AWS_ENDPOINT` pointed at the bundled MinIO); (2) the `isApi()` `is('api/*')` check is plausibly an intentional single-domain accommodation — our removal is deploy-specific, not a provable universal bug; (3) the docker-compose port vars are a local port-conflict convenience. All three stay as local patches in the gitignored `kanka-ce/` tree.
+
+---
+
 ## 2026-06-14 — FMG headless map-gen (pinned v1.99) + RAG hybrid rerank
 
 ### Added
