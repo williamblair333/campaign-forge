@@ -65,18 +65,28 @@ text = answer("how does grappling work?")  # grounded string
 Config knobs (all env-overridable): see `config.py` — `OLLAMA_HOST`,
 `RAG_EMBED_MODEL`, `RAG_CHAT_MODEL`, `RAG_CHUNK_CHARS`, `RAG_CHUNK_OVERLAP`.
 
-## Known limitation — statblock bleed
+## Chunking — layout-aware (statblock bleed fixed)
 
-Extraction is flat text (`pymupdf` `get_text("text")`) with fixed character
-windows. The SRD's two-column monster pages interleave adjacent statblocks, so a
-single chunk can contain the tail of one creature and the head of the next. This
-shows up as: generic queries ("armor class hit points") pulling generic rules
-text, and the generator occasionally attributing one creature's numbers to its
-page-neighbor. Statblock-vocabulary queries retrieve the right page cleanly
-(e.g. "Goblin Warrior Nimble Escape Scimitar" → p.290 at the top).
+Extraction is **column-aware**: `order_blocks()` reads pymupdf text blocks down
+the left column then the right (full-width titles act as flow breaks between
+vertical bands), instead of the flat `get_text("text")` that interleaved the
+SRD's two-column monster pages row-by-row. Chunking is **boundary-aware**:
+`pack_chunks()` greedily fills up to `RAG_CHUNK_CHARS` but breaks only on
+paragraph (blank-line) boundaries, so a statblock stays in one chunk; a single
+paragraph longer than the limit falls back to character windows (`_chunks`).
 
-Improvement path (not yet done): layout-aware / heading-anchored chunking so each
-statblock is one chunk, optionally a rerank pass over top-k.
+Before this change, "Adult Red Dragon breath weapon" retrieved a chunk whose
+tail bled into the **Young Red Dragon** statblock (wrong AC/HP); after, the top
+hit is the Adult Red Dragon's own contiguous block. Pure functions are unit
+-tested in `test_rag_ingest.py`.
+
+> **An algorithm change requires a full rebuild, not an append** — re-run
+> `ingest --rebuild` so old fixed-window chunks don't linger alongside new ones.
+
+Residual: the SRD statblock tables still carry tab/newline noise from the PDF's
+cell layout (e.g. `AC 12\t`, repeated `MOD SAVE`); that's inherent to the source
+table and orthogonal to chunking. An optional rerank pass over top-k is a
+possible future refinement.
 
 ## Reset
 
