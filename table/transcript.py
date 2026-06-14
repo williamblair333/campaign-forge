@@ -19,6 +19,8 @@ class Transcript:
         self._records.append(record)
 
     def tail(self, n: int) -> list[TurnRecord]:
+        if n <= 0:
+            return []
         return self._records[-n:]
 
     def __len__(self) -> int:

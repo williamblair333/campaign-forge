@@ -55,3 +55,10 @@ def test_roll_result_shown_in_markdown():
                         metadata={"formula": "1d20+3", "result": 17}))
     md = t.to_markdown()
     assert "17" in md
+    assert "[ROLL]" in md
+
+
+def test_tail_zero_returns_empty():
+    t = Transcript()
+    t.append(TurnRecord(round=1, actor="GM", kind="gm_narration", text="x"))
+    assert t.tail(0) == []
