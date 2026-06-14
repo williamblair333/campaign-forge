@@ -1,6 +1,13 @@
 {
-  "_comment": "Example registration for the Kanka MCP server (kanka_mcp.py). Copy the 'kanka' block into your Claude client's MCP config (e.g. .mcp.json or Claude Desktop config). MCP servers do NOT inherit your shell's .env, so KANKA_TOKEN MUST be passed here in 'env'. Create the venv first: python3 -m venv .venv-mcp && .venv-mcp/bin/pip install -r requirements-mcp.txt",
+  "_comment": "MCP server registrations for campaign-forge. Copy relevant blocks into your Claude client's MCP config (e.g. .mcp.json or Claude Desktop config). MCP servers do NOT inherit your shell's .env — pass tokens in 'env'. Adjust absolute paths to match your local checkout.",
+  "_setup_dnd5e": "python3 -m venv .venv-dnd5e && .venv-dnd5e/bin/pip install -r requirements-dnd5e.txt && bash scripts/dnd5e-fetch.sh",
+  "_setup_kanka": "python3 -m venv .venv-mcp && .venv-mcp/bin/pip install -r requirements-mcp.txt",
+  "_retired": "mnehmos.open5e.mcp retired 2026-06-14 — replaced by dnd5e below (self-hosted, full 5etools compendium)",
   "mcpServers": {
+    "dnd5e": {
+      "command": "/opt/proj/campaign-forge/.venv-dnd5e/bin/python",
+      "args": ["/opt/proj/campaign-forge/dnd5e_mcp.py"]
+    },
     "kanka": {
       "command": "/opt/proj/campaign-forge/.venv-mcp/bin/python",
       "args": ["/opt/proj/campaign-forge/kanka_mcp.py"],

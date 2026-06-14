@@ -58,7 +58,7 @@ Post-session:
 | VTT | [Foundry VTT](https://foundryvtt.com) |
 | VTT ↔ Claude bridge | [foundry-vtt-mcp](https://github.com/adambdooley/foundry-vtt-mcp) |
 | Local AI / RAG | in-repo `rag/` — GPU [Ollama](https://ollama.com) + [LanceDB](https://lancedb.com) over SRD 5.2.1 (see `rag/README.md`) |
-| 5e rules data | [mnehmos.open5e.mcp](https://github.com/Mnehmos/mnehmos.open5e.mcp) |
+| 5e rules data (structured) | `dnd5e_mcp.py` — local, full 5etools compendium via DuckDB |
 | Map generation | [Fantasy Map Generator](https://github.com/Azgaar/Fantasy-Map-Generator) |
 | Campaign narrative pipeline | [CampaignGenerator](https://github.com/kostadis/CampaignGenerator) |
 
