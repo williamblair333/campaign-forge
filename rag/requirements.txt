@@ -1,0 +1,11 @@
+# Pinned to the working set (2026-06-13). Rebuild the venv with:
+#   uv venv .venv-rag --python 3.13
+#   uv pip install --python .venv-rag/bin/python -r rag/requirements.txt
+lancedb==0.33.0
+pymupdf==1.27.2.3
+ollama==0.6.2
+tqdm==4.68.2
+# transitive, pinned for reproducibility
+numpy==2.4.6
+pyarrow==24.0.0
+pydantic==2.13.4

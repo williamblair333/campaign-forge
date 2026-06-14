@@ -1,7 +1,7 @@
 # campaign-forge — Session Handoff
 
 **Date:** 2026-06-07
-**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed and MCP bridge auto-detect deployed. **Smoke tests still pending — must run browser from dma64 directly (WebGL required).** Docker Port Registry established and all inter-project port conflicts resolved (2026-06-07).
+**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed and MCP bridge auto-detect deployed. **Smoke tests PASSED 2026-06-13** — full Claude→bridge→Foundry round-trip verified (get-world-info, list-scenes, created NPC actor from SRD compendium, read back full statblock). Docker Port Registry established and all inter-project port conflicts resolved (2026-06-07); dcup `up -f` flag-order bug fixed 2026-06-13. **Phase 4 (local RAG) DONE 2026-06-13** — in-repo `rag/` over SRD 5.2.1 on GPU Ollama; retrieval + grounded answers work, chunking quality tuning pending. **Phase 5 (CampaignGenerator ↔ Kanka sync) is now START HERE.**
 **Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment → world builder + map tools → Foundry VTT setup → Foundry WebSocket debugging → Foundry join page WebGL investigation
 
 ---
@@ -141,14 +141,19 @@ POST-SESSION
 - [x] `docker-compose.foundry.yml` + `scripts/foundry-setup.sh` — lifecycle management
 - [x] `foundry-vtt-mcp` cloned and npm-installed (37 MCP tools)
 - [x] **WebSocket fixed** — switched to `network_mode: host`; remote Tailscale browsers can now connect
-- [ ] **TODO: smoke tests** — GM logs into world, MCP bridge now auto-detects serverHost (leave blank), port `31415`. Claude creates a Scene and NPC actor to confirm end-to-end.
+- [x] **Smoke tests PASSED (2026-06-13)** — GM logged in on dma64, MCP bridge connected on port `31415` (serverHost blank/auto-detect). Claude created NPC actor "MCP Smoke Test Goblin" from `dnd5e.monsters` and read back full statblock. End-to-end write path confirmed.
+- [x] **Added `delete-actors` MCP tool (2026-06-13)** — the bridge had no actor-delete. Added a GM-gated, `deleteData`-HIGH_RISK-gated, PERMANENT delete-actors tool across 4 files in the (gitignored) foundry-vtt-mcp fork. **Local fork edit saved as `patches/delete-actors.patch`** — reapply with `git apply` after any re-clone, then `npm run build:server build:foundry` and redeploy `packages/foundry-module/dist/*` → `foundry/data/Data/modules/foundry-mcp-bridge/dist/`. Loading it needs: (a) Foundry browser F5, (b) foundry-mcp MCP server reconnect (`/mcp`). World backed up first to `foundry-world-backup-the-shattered-realm-2026-06-13.tgz`.
 - [ ] Optionally wire foundryvtt-rest-api as a REST alternative
 
-### Phase 4 — Local AI / RAG (START HERE)
-- [ ] Stand up dnd-llm-game (FastAPI + Ollama + LanceDB)
-- [ ] Upload PDF rulebooks as lore corpus
-- [ ] Test statblock retrieval from local PDFs
-- [ ] Decide: keep dnd-llm-game as a sidecar, or fold RAG into CampaignGenerator directly
+### Phase 4 — Local AI / RAG ✅ DONE (2026-06-13, quality tuning pending)
+- [x] **Decision:** skipped dnd-llm-game; built a **minimal in-repo RAG** in `rag/` instead (less bloat, full control). See `rag/README.md`.
+- [x] Ollama stands up via the existing open-webui CUDA compose (GPU RTX 3060, `:11434`). Container `open-webui-ollama-1`. Models: `nomic-embed-text` (embed) + `llama3.1:8b` (gen). Native `ollama` is a Docker wrapper, not a binary.
+- [x] Corpus: official **SRD 5.2.1** (CC-BY-4.0) in `rag/corpus/` (+ ATTRIBUTION.md). Re-download URL recorded.
+- [x] Pipeline: `rag/ingest.py` (PDF→chunks→embed→LanceDB) + `rag/query.py` (retrieve + grounded `--answer`). Reusable `from rag import search, answer`. **1,596 chunks** ingested, 12 MB LanceDB.
+- [x] Statblock retrieval verified end-to-end: "Goblin Warrior Nimble Escape Scimitar" → SRD p.290 ranks #1–3 (cosine 0.26); grounded LLM answer with citations works.
+- [ ] **Quality tuning pending:** flat text + fixed char-windows bleed adjacent two-column statblocks into one chunk; generic queries pull generic rules. Next: layout-aware/heading-anchored chunking + optional rerank. (See `rag/README.md` "Known limitation".)
+- [ ] **Before commit:** add `.gitignore` for `rag/lancedb/`, `rag/corpus/*.pdf`, `.venv-rag/` (large/re-creatable; don't commit).
+- [ ] **Post-reboot:** Ollama container may be down — `docker start open-webui-ollama-1` (queries fail loudly if it's not up).
 
 ### Phase 5 — CampaignGenerator integration
 - [ ] Add Kanka CE sync to CampaignGenerator:
