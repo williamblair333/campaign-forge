@@ -79,9 +79,10 @@ class TableOrchestrator:
                 ))
 
                 if player_turn.roll_needed:
+                    formula = gm_cue.roll_request.formula if gm_cue.roll_request else "1d20"
                     roll_req = RollRequest(
                         actor=actor.name,
-                        formula="1d20",
+                        formula=formula,
                         purpose=player_turn.action_type,
                     )
                     roll = request_roll(roll_req, use_foundry=self.use_foundry)
@@ -89,7 +90,7 @@ class TableOrchestrator:
                         round=combat.round, actor=actor.name,
                         kind="roll_result",
                         text=f"{player_turn.action_type}: {roll}",
-                        metadata={"formula": "1d20", "result": roll},
+                        metadata={"formula": formula, "result": roll},
                     ))
                     last_action = (
                         f"{actor.name} rolled {roll} for {player_turn.action_type} "

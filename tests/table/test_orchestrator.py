@@ -2,6 +2,7 @@
 from unittest.mock import MagicMock
 from table.orchestrator import TableOrchestrator, _build_goblin_ambush, _apply_scene_update
 from table.gm_agent import GMTurn
+from table.dice import RollRequest
 from table.player_agent import PlayerTurn
 from table.combat import CombatState, Combatant
 from table.personas import PHASE_A_PERSONAS
@@ -84,6 +85,23 @@ def test_run_encounter_calls_dice_for_roll_needed():
     transcript = orch.run_encounter(combat)
     kinds = [r.kind for r in transcript.tail(20)]
     assert "roll_result" in kinds
+
+
+def test_player_roll_uses_gm_cue_formula():
+    """GM cue's roll_request.formula is propagated to the player's roll_result record."""
+    combat = CombatState([
+        Combatant("Brakka Stonefist", 13, 13, 14, is_player=True),
+        Combatant("Goblin A", 7, 1, 10, is_player=False),
+    ], max_rounds=1)
+    roll_req = RollRequest(actor="Brakka Stonefist", formula="1d20+5", purpose="attack")
+    gm = _mock_gm(roll_request=roll_req)
+    player = _mock_player(PHASE_A_PERSONAS[0], roll_needed=True)
+    orch = TableOrchestrator(gm, [player], use_foundry=False)
+    transcript = orch.run_encounter(combat)
+    player_rolls = [r for r in transcript.tail(20)
+                    if r.kind == "roll_result" and r.actor == "Brakka Stonefist"]
+    assert player_rolls, "No roll_result for player"
+    assert player_rolls[0].metadata["formula"] == "1d20+5"
 
 
 def test_apply_scene_update_applies_hp_delta():

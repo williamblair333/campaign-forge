@@ -1,4 +1,6 @@
+import logging
 import pytest
+from unittest.mock import patch
 from table.dice import local_roll, request_roll, RollRequest
 
 
@@ -40,3 +42,19 @@ def test_roll_request_fields():
     assert req.actor == "Elara"
     assert req.formula == "1d8+2"
     assert req.purpose == "spell damage"
+
+
+def test_request_roll_foundry_fallback_uses_local():
+    req = RollRequest(actor="Brakka", formula="1d20", purpose="attack")
+    # NotImplementedError (stub) should silently fall back
+    result = request_roll(req, use_foundry=True)
+    assert 1 <= result <= 20
+
+
+def test_request_roll_logs_warning_on_foundry_error(caplog):
+    req = RollRequest(actor="Brakka", formula="1d20", purpose="attack")
+    with patch("table.dice._foundry_roll", side_effect=RuntimeError("conn refused")):
+        with caplog.at_level(logging.WARNING):
+            result = request_roll(req, use_foundry=True)
+    assert isinstance(result, int)
+    assert "conn refused" in caplog.text

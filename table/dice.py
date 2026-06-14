@@ -1,3 +1,4 @@
+import logging
 import re
 import random
 from dataclasses import dataclass
@@ -26,8 +27,13 @@ def request_roll(req: RollRequest, *, use_foundry: bool = True) -> int:
     if use_foundry:
         try:
             return _foundry_roll(req)
-        except Exception:
-            pass
+        except NotImplementedError:
+            pass  # stub — live Foundry MCP not wired yet
+        except Exception as e:
+            logging.warning(
+                "Foundry roll failed for %s (%s: %s) — falling back to local",
+                req.actor, type(e).__name__, e,
+            )
     return local_roll(req.formula)
 
 
