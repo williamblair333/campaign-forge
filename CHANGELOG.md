@@ -6,6 +6,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-14 — Phase 7: self-hosted 5e data layer (dnd5e_mcp.py) shipped (PR #27)
+
+### Added
+- `dnd5e_mcp.py` — FastMCP server with 4 tools: `lookup_monster`, `lookup_spell`, `lookup_item`, `search_5e`
+- `test_dnd5e_mcp.py` — 20 pytest cases (all fixture-based; no real data files required in CI)
+- `scripts/dnd5e-fetch.sh` — sparse-clones 5etools compendium from mirror-2 into `data/dnd5e/` (gitignored); auto-runs on first startup via `ensure_data()`
+- `requirements-dnd5e.txt` — isolated venv; `mcp[cli]>=1.2,<2`, `duckdb>=0.10`, `requests>=2.31`
+
+### Fixed
+- `scripts/dnd5e-fetch.sh`: mirror-3 (5etools-mirror-3) was dead (404); switched to `revilowaldow/5etools-mirror-2.github.io`; added `--no-cone` for git sparse-checkout with individual files; added mirror-fragility comment with recovery instructions
+- `dnd5e_mcp.py`: excluded `foundry.json` / `index.json` / `sources.json` from `load_data()` — `foundry.json` uses the `spell`/`monster` envelope but contains Foundry VTT overlay data that was poisoning exact-name lookups
+
+### Changed
+- `.mcp.json.example`: added `dnd5e` server entry + `_setup_dnd5e` comment; retired `mnehmos.open5e.mcp`
+- `README.md`: replaced `mnehmos.open5e.mcp` row with `dnd5e_mcp.py`
+- `HANDOFF.md`: open question #1 marked RESOLVED; stack table row updated
+
+### Pre-mortem findings addressed
+- ENVIRONMENTAL: `duckdb` ImportError → actionable setup message + `sys.exit(1)`; `ensure_data()` fetch failure → actionable stderr with exact manual command
+- OBSERVABILITY: startup banner `[dnd5e_mcp] loaded N monsters, M spells, K items` to stderr
+- SCALE (advisory): foundry.json exclusion also reduces startup memory slightly
+
+---
+
 ## 2026-06-14 — map_tools docstring fix; Kanka upstream patches verified (no PR)
 
 ### Fixed

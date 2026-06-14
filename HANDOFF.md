@@ -241,9 +241,16 @@ bash scripts/foundry-setup.sh status
 #         register kanka_mcp.py via .mcp.json.example (pass KANKA_TOKEN in env block)
 #         tools: kanka_pull / kanka_push_preview / kanka_push_apply
 #
-# Core build COMPLETE + polished. Done 2026-06-14: RAG hybrid rerank (PR #18),
-# RAG layout-aware chunking (PR #16), FMG headless map-gen pinned to v1.99
-# (PR #19). foundryvtt-rest-api: SKIPPED by decision (MCP bridge already covers it).
+# Core build COMPLETE + polished. Done 2026-06-14 (this session): self-hosted 5e data layer
+# (dnd5e_mcp.py — PR #27): 4440 monsters, 558 spells, 1773 items via DuckDB in-memory from
+# 5etools mirror-2; retire mnehmos.open5e.mcp. Also done earlier: RAG hybrid rerank (PR #18),
+# RAG layout-aware chunking (PR #16), FMG headless map-gen pinned to v1.99 (PR #19).
+# foundryvtt-rest-api: SKIPPED by decision (MCP bridge already covers it).
+#
+# 5e MCP: python3 -m venv .venv-dnd5e && .venv-dnd5e/bin/pip install -r requirements-dnd5e.txt
+#         bash scripts/dnd5e-fetch.sh   # one-time; auto-runs on startup if data absent
+#         register dnd5e_mcp.py via .mcp.json.example
+#         tools: lookup_monster / lookup_spell / lookup_item / search_5e
 #
 # Remaining backlog (optional / research — NOT usage blockers):
 #   - Kanka CE upstream PRs: RESOLVED 2026-06-14 — verified, NO PR warranted

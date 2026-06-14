@@ -36,6 +36,12 @@
 - `kanka_push.py` — push an edited `world_state.md` back to Kanka CE: parse section-profile → match by name → create/update (PR #12). Dry-run by default, `--apply` commits, never deletes; skip-if-unchanged (no HTML clobber); continue-on-error. Generic `KankaClient.create()`/`update()`. 19 pytest cases. Round-trip verified lossless against live campaign 1.
 - `prep.py` reads `world_state.md` as a grounding source — already wired via `config.yaml` (`world_state → docs/world_state.md`); no CampaignGenerator change needed. Post-session update step = `kanka_push.py --apply` after the distill/synthesise pipeline regenerates the doc.
 
+### Phase 7 — Self-hosted 5e data layer ✅ (2026-06-14)
+- `dnd5e_mcp.py` — FastMCP server: `lookup_monster`, `lookup_spell`, `lookup_item`, `search_5e`
+- Full 5etools compendium loaded from `revilowaldow/5etools-mirror-2.github.io` into DuckDB in-memory (4440 monsters, 558 spells, 1773 items); exact + fuzzy (jaro_winkler ≥ 0.85) lookup
+- `scripts/dnd5e-fetch.sh` — sparse-clone fetch; auto-runs on first startup; data gitignored
+- 20 pytest cases; `mnehmos.open5e.mcp` (cloud) retired
+
 ### Phase 6 — MCP servers ✅ (2026-06-14)
 - **campaign-forge `kanka_mcp.py`** — FastMCP server exposing the Kanka sync engine: `kanka_pull` (read-only), `kanka_push_preview` (dry-run), `kanka_push_apply` (commit; never deletes). Guarded FastMCP import (core unit-tested without `mcp`); pinned `requirements-mcp.txt`; `.mcp.json.example`. 5 tests; server build + live pull verified. (PR #14)
 - **CampaignGenerator `mcp_server.py`** — the named tools already existed: `get_world_state`, `get_campaign_state`, `run_prep` (= `session_prep`), plus ~20 more.
@@ -84,4 +90,4 @@ _(none)_
 
 - Can Fantasy Map Generator be headlessly driven (Puppeteer/Playwright) for agent-triggered generation?
 - What's the canonical source of truth for campaign state — Kanka CE or CampaignGenerator flat markdown files?
-- Is there a Docker-composable Open5e or 5etools API for fully offline 5e data?
+- ~~Is there a Docker-composable Open5e or 5etools API for fully offline 5e data?~~ ✅ RESOLVED — `dnd5e_mcp.py` (Phase 7, PR #27): no Docker container needed; DuckDB in-memory + 5etools mirror sparse-clone.
