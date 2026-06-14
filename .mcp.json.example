@@ -1,0 +1,13 @@
+{
+  "_comment": "Example registration for the Kanka MCP server (kanka_mcp.py). Copy the 'kanka' block into your Claude client's MCP config (e.g. .mcp.json or Claude Desktop config). MCP servers do NOT inherit your shell's .env, so KANKA_TOKEN MUST be passed here in 'env'. Create the venv first: python3 -m venv .venv-mcp && .venv-mcp/bin/pip install -r requirements-mcp.txt",
+  "mcpServers": {
+    "kanka": {
+      "command": "/opt/proj/campaign-forge/.venv-mcp/bin/python",
+      "args": ["/opt/proj/campaign-forge/kanka_mcp.py"],
+      "env": {
+        "KANKA_TOKEN": "<your-kanka-api-token>",
+        "KANKA_BASE_URL": "http://localhost:8081"
+      }
+    }
+  }
+}

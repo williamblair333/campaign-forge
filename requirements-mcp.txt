@@ -1,0 +1,12 @@
+# Kanka MCP server (kanka_mcp.py) — isolated from the base / rag / memweave envs.
+#
+# Setup:
+#   python3 -m venv .venv-mcp
+#   .venv-mcp/bin/pip install -r requirements-mcp.txt
+#   # then register kanka_mcp.py via .mcp.json (see .mcp.json.example)
+#
+# Pinned so a future `mcp` major (which has moved the FastMCP import path before)
+# can't silently break server startup. The core sync functions need only
+# `requests`; `mcp[cli]` is only required to actually serve the tools.
+mcp[cli]>=1.2,<2
+requests>=2.31
