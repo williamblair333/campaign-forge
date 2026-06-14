@@ -145,14 +145,14 @@ POST-SESSION
 - [x] **Added `delete-actors` MCP tool (2026-06-13)** — the bridge had no actor-delete. Added a GM-gated, `deleteData`-HIGH_RISK-gated, PERMANENT delete-actors tool across 4 files in the (gitignored) foundry-vtt-mcp fork. **Local fork edit saved as `patches/delete-actors.patch`** — reapply with `git apply` after any re-clone, then `npm run build:server build:foundry` and redeploy `packages/foundry-module/dist/*` → `foundry/data/Data/modules/foundry-mcp-bridge/dist/`. Loading it needs: (a) Foundry browser F5, (b) foundry-mcp MCP server reconnect (`/mcp`). World backed up first to `foundry-world-backup-the-shattered-realm-2026-06-13.tgz`.
 - [ ] Optionally wire foundryvtt-rest-api as a REST alternative
 
-### Phase 4 — Local AI / RAG ✅ DONE (2026-06-13, quality tuning pending)
+### Phase 4 — Local AI / RAG ✅ DONE (2026-06-13; chunking tuned 2026-06-14)
 - [x] **Decision:** skipped dnd-llm-game; built a **minimal in-repo RAG** in `rag/` instead (less bloat, full control). See `rag/README.md`.
 - [x] Ollama stands up via the existing open-webui CUDA compose (GPU RTX 3060, `:11434`). Container `open-webui-ollama-1`. Models: `nomic-embed-text` (embed) + `llama3.1:8b` (gen). Native `ollama` is a Docker wrapper, not a binary.
 - [x] Corpus: official **SRD 5.2.1** (CC-BY-4.0) in `rag/corpus/` (+ ATTRIBUTION.md). Re-download URL recorded.
 - [x] Pipeline: `rag/ingest.py` (PDF→chunks→embed→LanceDB) + `rag/query.py` (retrieve + grounded `--answer`). Reusable `from rag import search, answer`. **1,596 chunks** ingested, 12 MB LanceDB.
 - [x] Statblock retrieval verified end-to-end: "Goblin Warrior Nimble Escape Scimitar" → SRD p.290 ranks #1–3 (cosine 0.26); grounded LLM answer with citations works.
-- [ ] **Quality tuning pending:** flat text + fixed char-windows bleed adjacent two-column statblocks into one chunk; generic queries pull generic rules. Next: layout-aware/heading-anchored chunking + optional rerank. (See `rag/README.md` "Known limitation".)
-- [ ] **Before commit:** add `.gitignore` for `rag/lancedb/`, `rag/corpus/*.pdf`, `.venv-rag/` (large/re-creatable; don't commit).
+- [x] **Chunking tuned (PR #16, 2026-06-14):** `order_blocks()` reads columns left-then-right (full-width titles = flow breaks); `pack_chunks()` packs to paragraph boundaries so a statblock stays one chunk. Fixed the cross-attribution bleed — "Adult Red Dragon breath weapon" now returns the Adult (not Young) Red Dragon. Re-ingested (1761 chunks). `test_rag_ingest.py` (9 cases). **Algo changes need `ingest --rebuild`, not append.** Optional rerank over top-k is the only remaining refinement; SRD table tab/newline noise is inherent to the PDF.
+- [x] **`.gitignore`:** `rag/lancedb/`, `rag/corpus/*.pdf`, `.venv-rag/` all ignored.
 - [ ] **Post-reboot:** Ollama container may be down — `docker start open-webui-ollama-1` (queries fail loudly if it's not up).
 
 ### Phase 5 — CampaignGenerator integration ✅ DONE (2026-06-14)
@@ -241,11 +241,15 @@ bash scripts/foundry-setup.sh status
 #         register kanka_mcp.py via .mcp.json.example (pass KANKA_TOKEN in env block)
 #         tools: kanka_pull / kanka_push_preview / kanka_push_apply
 #
-# START HERE (Phase 7 candidates, pick one): layout-aware RAG chunking (Phase 4
-#   follow-up); per-stage gate-respecting CG MCP tools (only if CG-side automation
-#   wanted — see project_campaigngenerator_pipeline_gates memory); or upstream the
-#   3 Kanka CE source patches as PRs. The autonomous-AI-table research track
-#   (reviews/, gitignored) is the bigger swing.
+# Core build COMPLETE — the stack is usable end to end. Remaining backlog is
+# optional / external / research, not a usage blocker:
+#   - Upstream the 3 Kanka CE source patches as PRs to kinnewig/kanka-community-edition
+#     (EXTERNAL publishing — needs explicit go-ahead, not auto-done).
+#   - Optional: foundryvtt-rest-api as a REST alternative (the MCP bridge already works);
+#     map-gen REST automation for Azgaar FMG (no REST API today — Playwright/seed-URL build);
+#     RAG top-k rerank refinement.
+#   - Research swing: autonomous AI table (reviews/, gitignored) — gate on the
+#     weekend experiment (1 GM + 2 players, 1 combat, text-only).
 ```
 
 ## Key Infrastructure Notes

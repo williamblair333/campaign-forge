@@ -26,10 +26,10 @@
 - **Smoke tests PASSED (2026-06-13):** end-to-end Claude→bridge→Foundry verified (world info, scenes, create + read-back NPC actor)
 - **Added `delete-actors` MCP tool (2026-06-13):** GM-gated, PERMANENT; preserved as `patches/delete-actors.patch` (fork is gitignored)
 
-### Phase 4 — Local AI / RAG ✅ (2026-06-13)
+### Phase 4 — Local AI / RAG ✅ (2026-06-13; chunking tuned 2026-06-14)
 - Built **in-repo `rag/`** (decision: skipped `dnd-llm-game`) — GPU Ollama + LanceDB over SRD 5.2.1 (CC-BY-4.0)
-- `rag/ingest.py` + `rag/query.py`; reusable `search`/`answer`; 1,596 chunks; retrieval + grounded answers verified
-- Follow-up: layout-aware chunking for cleaner statblock retrieval
+- `rag/ingest.py` + `rag/query.py`; reusable `search`/`answer`; retrieval + grounded answers verified
+- **Layout-aware chunking** (PR #16): column-ordered extraction + paragraph-boundary packing fixed the two-column statblock bleed (cross-attribution). Re-ingested (1761 chunks); `test_rag_ingest.py`. Only optional refinement left: a top-k rerank.
 
 ### Phase 5 — CampaignGenerator integration ✅ (2026-06-14)
 - `kanka_sync.py` — pull world_state from Kanka CE → write `world_state.md` (PR #11; verified vs live campaign 1). Paginated `kanka_client._get_all`.
@@ -51,10 +51,10 @@ _(none)_
 
 ## Planned
 
-### Next candidates
-- Layout-aware RAG chunking (Phase 4 follow-up) for cleaner statblock retrieval.
-- Per-stage CampaignGenerator MCP tools (gate-respecting) — only if Claude-driven post-session automation is wanted.
-- Upstream the 3 Kanka CE source patches (DomainService, filesystems.php, docker-compose) as PRs.
+### Next candidates (optional / external — core stack is usable)
+- **Upstream the 3 Kanka CE patches** (DomainService, filesystems.php, docker-compose) as PRs to `kinnewig/kanka-community-edition` — external publishing; needs an explicit go-ahead.
+- Optional: `foundryvtt-rest-api` REST alternative (MCP bridge already works); RAG top-k rerank; Azgaar FMG map-gen REST automation (no REST API today — Playwright/seed-URL build).
+- Per-stage CampaignGenerator MCP tools (gate-respecting) — only if Claude-driven CG post-session automation is wanted.
 
 ---
 
