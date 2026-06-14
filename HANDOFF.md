@@ -199,10 +199,10 @@ vendor/bin/sail down
 
 ## Open Questions (still to resolve)
 
-1. **5e data layer** — dnd-mcp hits dnd5eapi.co (cloud). For fully self-hosted, need a local Open5e or 5etools API container. Investigate `5e-srd-api` Docker images.
-2. **Map generation gap** — Fantasy Map Generator has no REST API. Options: (a) Puppeteer/Playwright automation, (b) seed-based URL parameters, (c) ComfyUI via foundry-vtt-mcp for battlemaps specifically.
-3. **Sync strategy** — CampaignGenerator uses flat markdown files. Kanka CE uses a database. Decide on canonical source of truth and sync direction.
-4. **Kanka CE upstream patches** — the 3 fixes (DomainService, filesystems.php, docker-compose.yml) should probably be submitted as PRs to the upstream repo.
+1. **5e data layer** — Design spec complete (PR #24, `docs/superpowers/specs/2026-06-14-dnd5e-data-layer-design.md`). Implementation pending: `dnd5e_mcp.py` FastMCP server + 5etools JSON via DuckDB; retires cloud `mnehmos.open5e.mcp`.
+2. **Map generation gap** — ✅ RESOLVED (PR #19). Headless Playwright gen ships as `scripts/fmg-generate.py`, pinned to FMG v1.99. v1.99 pin migration deferred indefinitely (needs Node 24 + Vite rebuild; not worth it unless a newer FMG feature is required).
+3. **Sync strategy** — ✅ RESOLVED (Phase 5). Kanka CE is the canonical source of truth. `kanka_sync.py` pulls → `world_state.md`; `kanka_push.py` pushes edits back. Loop is closed.
+4. **Kanka CE upstream patches** — ✅ RESOLVED (2026-06-14). Verified no upstream PRs warranted — minio fix already upstream; isApi removal is deploy-specific. Patches stay local-only.
 5. **foundry-vtt-mcp API key** — need to confirm how to generate a Foundry API key for the bridge (admin panel or artisan command).
 
 ---
