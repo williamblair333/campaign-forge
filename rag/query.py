@@ -13,12 +13,42 @@ Retrieval and generation errors propagate (no empty-result masking of an outage)
 """
 
 import argparse
+import re
 import sys
 
 import lancedb
 import ollama
 
 from . import config
+
+_TOKEN_RE = re.compile(r"[a-z0-9]{2,}")
+
+
+def _tokens(text):
+    return set(_TOKEN_RE.findall((text or "").lower()))
+
+
+def rerank(query, hits, k=5, alpha=None):
+    """Re-rank vector candidates by ALPHA*vec_sim + (1-ALPHA)*lexical_overlap.
+
+    `vec_sim` = 1 - cosine distance (a missing distance counts as 0). `lexical`
+    = fraction of query tokens present in the chunk. Returns the top-k hits,
+    each annotated with `vec_sim`, `lex`, and `rerank_score`.
+    """
+    if alpha is None:
+        alpha = config.RERANK_ALPHA
+    qt = _tokens(query)
+    scored = []
+    for h in hits:
+        dist = h.get("score")
+        vec_sim = 1.0 - dist if dist is not None else 0.0
+        lex = (len(qt & _tokens(h["text"])) / len(qt)) if qt else 0.0
+        scored.append(
+            {**h, "vec_sim": vec_sim, "lex": lex,
+             "rerank_score": alpha * vec_sim + (1.0 - alpha) * lex}
+        )
+    scored.sort(key=lambda x: x["rerank_score"], reverse=True)
+    return scored[:k]
 
 
 def _client():
@@ -31,8 +61,17 @@ def _embed_query(client, text):
     )["embedding"]
 
 
-def search(query, k=5):
-    """Return the top-k chunks for ``query`` as a list of dicts."""
+def search(query, k=5, rerank_candidates=None):
+    """Return the top-k chunks for ``query`` as a list of dicts.
+
+    By default this pulls `config.RERANK_CANDIDATES` by vector then hybrid-reranks
+    down to k. Pass ``rerank_candidates=0`` for pure vector retrieval.
+    """
+    if rerank_candidates is None:
+        rerank_candidates = config.RERANK_CANDIDATES
+    do_rerank = rerank_candidates and rerank_candidates > k
+    limit = max(k, rerank_candidates) if do_rerank else k
+
     db = lancedb.connect(config.DB_PATH)
     if config.TABLE not in db.list_tables().tables:
         raise RuntimeError(
@@ -40,22 +79,23 @@ def search(query, k=5):
             f"Run `python -m rag.ingest --rebuild` first."
         )
     qvec = _embed_query(_client(), query)
-    hits = (
+    rows = (
         db.open_table(config.TABLE)
         .search(qvec)
         .metric(config.SEARCH_METRIC)
-        .limit(k)
+        .limit(limit)
         .to_list()
     )
-    return [
+    hits = [
         {
             "text": h["text"],
             "source": h["source"],
             "page": h["page"],
             "score": h.get("_distance"),
         }
-        for h in hits
+        for h in rows
     ]
+    return rerank(query, hits, k) if do_rerank else hits[:k]
 
 
 def answer(query, k=5):
