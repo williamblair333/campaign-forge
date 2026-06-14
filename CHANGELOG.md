@@ -6,6 +6,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-13 — Phase 4 local RAG; Foundry smoke tests passed; delete-actors tool
+
+### Added
+- **`rag/`** — in-repo local RAG harness: PDF corpus → Ollama embeddings (`nomic-embed-text`) → LanceDB → retrieval + grounded answers (`llama3.1:8b`), fully self-hosted on GPU Ollama. `rag/ingest.py`, `rag/query.py`, `rag/config.py`; reusable `from rag import search, answer`; pinned `rag/requirements.txt`. Corpus: SRD 5.2.1 (CC-BY-4.0, `rag/corpus/ATTRIBUTION.md`). 1,596 chunks ingested.
+- **`delete-actors`** MCP tool in the foundry-vtt-mcp fork — the bridge had no actor-delete. GM-gated + `deleteData` HIGH_RISK perm + PERMANENT (no undo). Preserved as **`patches/delete-actors.patch`** (fork is gitignored). Touched data-access.ts, queries.ts, tools/token-manipulation.ts, backend.ts.
+- **`.gitignore`** entries: `.venv-rag/`, `rag/lancedb/`, `rag/corpus/*.pdf`, `foundry-world-backup-*.tgz`.
+
+### Fixed
+- **`/opt/lib/docker-port-registry/dcup`** (shared tool, backup `dcup.bak.2026-06-13`) — (1) `dcup up -f file` execed `docker compose up -f file` but `-f`/`-p` are global flags that must precede the subcommand → now re-emitted up front; (2) `grep -c … || echo 0` produced `"0\n0"` breaking the stale-claim reconcile numeric test.
+
+### Changed
+- **Phase 3 Foundry smoke tests PASSED** — end-to-end Claude→bridge→Foundry verified (world info, scenes, create + read-back NPC actor); test actor later deleted via the new `delete-actors` tool.
+- Ollama container (`open-webui-ollama-1`) set to `restart=unless-stopped` so RAG survives reboots.
+- Kanka CE stack brought back up via `dcup`.
+
+---
+
 ## 2026-06-07 — Docker Port Registry established; inter-project port conflicts resolved
 
 ### Added
