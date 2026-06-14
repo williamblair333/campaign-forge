@@ -6,6 +6,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-13 — Retrieval-stack integration: jcodemunch index, memweave access, /understand graph
+
+### Added
+- **jcodemunch index** for this repo (`williamblair333/campaign-forge`, 10 files / 62 symbols). It was never indexed; code navigation now routes through the stack instead of brute-force reads.
+- **memweave reachable from the project root** via two gitignored symlinks into `/opt/proj/Uncle-J-s-Refinery` (`.venv-memweave`, `scripts/memweave`). memweave is a *centralized* stack tool — one global store at `~/.uncle-j-memory`, fed nightly by `sync_memory.sh --all` — so campaign-forge transcripts were already searchable; the symlinks just make the documented `mw_search.py` command resolve here too. No per-project install (that would fragment the corpus).
+- **`/understand` knowledge graph** under `.understand-anything/` (gitignored): 55 nodes / 91 edges over the 20-file project scope (vendored `kanka-ce/` + `foundry-vtt-mcp/` excluded), 5 architectural layers, 9-step tour. Built via the understand-anything plugin (pinned pnpm 9.15.4 through corepack since Node 20 here can't run pnpm 11). View with `/understand-dashboard`.
+
+### Changed
+- **`.gitignore`** (PR #9): ignore the memweave symlinks (`.venv-memweave`, `scripts/memweave` — no trailing slash so the pattern matches a symlink) and the generated `.understand-anything/` graph output.
+
+---
+
 ## 2026-06-13 — Phase 4 local RAG; Foundry smoke tests passed; delete-actors tool
 
 ### Added

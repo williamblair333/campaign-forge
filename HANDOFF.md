@@ -249,3 +249,8 @@ bash scripts/foundry-setup.sh status
 **Why host networking:** Docker's DNAT+conntrack routed return packets via the main routing table, which doesn't contain Tailscale peer routes (those are in table 52 only). This silently dropped WebSocket upgrade responses from remote Tailscale peers while allowing short-lived HTTP GETs to complete. Switching to host networking bypasses Docker NAT entirely.
 
 **MCP bridge host:** auto-detected from `window.location.hostname` — leave the "Websocket Server Host" setting blank. Works for localhost, LAN, and Tailscale without manual config. Port stays `31415`.
+
+**Retrieval stack (added 2026-06-13):**
+- **jcodemunch** — repo is indexed as `williamblair333/campaign-forge` (10 files, 62 symbols). Use the stack tools (`search_symbols`, `get_symbol_source`, etc.) for code nav, not grep. Re-index after structural edits if the watch daemon hasn't.
+- **memweave** is centralized: one global store `~/.uncle-j-memory`, fed nightly by `sync_memory.sh --all` from the Refinery; campaign-forge transcripts are already in it. The documented command now resolves from this root via gitignored symlinks (`.venv-memweave`, `scripts/memweave` → Refinery): `.venv-memweave/bin/python scripts/memweave/mw_search.py "query" --k 5`. Do NOT install memweave per-project.
+- **`/understand` graph** lives in `.understand-anything/` (gitignored). `/understand-dashboard` serves it (Vite; picks a free port, 5173 is kanka-ce's). Good for orienting into the Phase 5 surface (kanka_client → world_builder → rag).
