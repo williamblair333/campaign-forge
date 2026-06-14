@@ -41,6 +41,13 @@ temp/
 
 # ── Foundry VTT runtime data (binary cache, world files, logs) ────────────────
 foundry/data/
+foundry-world-backup-*.tgz
+
+# ── RAG harness (Phase 4) — re-creatable; don't commit ───────────────────────
+.venv-rag/
+rag/lancedb/
+rag/corpus/*.pdf
+# keep rag/corpus/ATTRIBUTION.md tracked (not a PDF)
 
 # ── foundry-vtt-mcp (upstream repo — clone separately per SETUP.md §17) ───────
 foundry-vtt-mcp/

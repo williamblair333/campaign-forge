@@ -1,0 +1,207 @@
+diff --git a/packages/foundry-module/src/data-access.ts b/packages/foundry-module/src/data-access.ts
+index baf3fe2..5275149 100644
+--- a/packages/foundry-module/src/data-access.ts
++++ b/packages/foundry-module/src/data-access.ts
+@@ -6568,6 +6568,66 @@ export class FoundryDataAccess {
+     }
+   }
+ 
++  /**
++   * Delete one or more actors from the world directory.
++   * PERMANENT — Foundry has no undo. Gated by the HIGH_RISK `deleteData`
++   * permission (GM + allowWriteOperations). Unmatched ids are reported in
++   * failedActors rather than throwing, so a bad id never cascades into a wipe.
++   */
++  async deleteActors(data: { actorIds: string[] }): Promise<any> {
++    this.validateFoundryState();
++
++    const permissionCheck = permissionManager.checkWritePermission('deleteData', {
++      targetIds: data.actorIds,
++    });
++
++    if (!permissionCheck.allowed) {
++      throw new Error(`${ERROR_MESSAGES.ACCESS_DENIED}: ${permissionCheck.reason}`);
++    }
++
++    try {
++      const deletedActors: string[] = [];
++      const failedActors: string[] = [];
++
++      for (const actorId of data.actorIds) {
++        try {
++          const actor = (game.actors as any)?.get(actorId);
++          if (actor) {
++            await actor.delete();
++            deletedActors.push(actorId);
++          } else {
++            failedActors.push(actorId);
++          }
++        } catch (error) {
++          failedActors.push(actorId);
++        }
++      }
++
++      this.auditLog(
++        'deleteActors',
++        { actorIds: data.actorIds, deletedCount: deletedActors.length },
++        'success'
++      );
++
++      return {
++        success: true,
++        deletedCount: deletedActors.length,
++        deletedActors,
++        failedActors: failedActors.length > 0 ? failedActors : undefined,
++      };
++    } catch (error) {
++      this.auditLog(
++        'deleteActors',
++        data,
++        'failure',
++        error instanceof Error ? error.message : 'Unknown error'
++      );
++      throw new Error(
++        `Failed to delete actors: ${error instanceof Error ? error.message : 'Unknown error'}`
++      );
++    }
++  }
++
+   /**
+    * Get detailed information about a token
+    */
+diff --git a/packages/foundry-module/src/queries.ts b/packages/foundry-module/src/queries.ts
+index 8db7eb3..b1bdd54 100644
+--- a/packages/foundry-module/src/queries.ts
++++ b/packages/foundry-module/src/queries.ts
+@@ -123,6 +123,7 @@ export class QueryHandlers {
+     CONFIG.queries[`${modulePrefix}.move-token`] = this.handleMoveToken.bind(this);
+     CONFIG.queries[`${modulePrefix}.update-token`] = this.handleUpdateToken.bind(this);
+     CONFIG.queries[`${modulePrefix}.delete-tokens`] = this.handleDeleteTokens.bind(this);
++    CONFIG.queries[`${modulePrefix}.delete-actors`] = this.handleDeleteActors.bind(this);
+     CONFIG.queries[`${modulePrefix}.get-token-details`] = this.handleGetTokenDetails.bind(this);
+     CONFIG.queries[`${modulePrefix}.toggle-token-condition`] =
+       this.handleToggleTokenCondition.bind(this);
+@@ -1312,6 +1313,33 @@ export class QueryHandlers {
+     }
+   }
+ 
++  /**
++   * Handle delete actors request. PERMANENT deletion of world actors — there is
++   * no undo in Foundry. GM-gated; delegates to dataAccess.deleteActors which
++   * enforces the HIGH_RISK deleteData permission.
++   */
++  private async handleDeleteActors(data: { actorIds: string[] }): Promise<any> {
++    try {
++      // SECURITY: Silent GM validation
++      const gmCheck = this.validateGMAccess();
++      if (!gmCheck.allowed) {
++        return { error: 'Access denied', success: false };
++      }
++
++      this.dataAccess.validateFoundryState();
++
++      if (!data.actorIds || !Array.isArray(data.actorIds) || data.actorIds.length === 0) {
++        throw new Error('actorIds array is required and must not be empty');
++      }
++
++      return await this.dataAccess.deleteActors(data);
++    } catch (error) {
++      throw new Error(
++        `Failed to delete actors: ${error instanceof Error ? error.message : 'Unknown error'}`
++      );
++    }
++  }
++
+   /**
+    * Handle get token details request
+    */
+diff --git a/packages/mcp-server/src/backend.ts b/packages/mcp-server/src/backend.ts
+index 3e6429b..10c8405 100644
+--- a/packages/mcp-server/src/backend.ts
++++ b/packages/mcp-server/src/backend.ts
+@@ -1625,6 +1625,11 @@ async function startBackend(): Promise<void> {
+ 
+                   break;
+ 
++                case 'delete-actors':
++                  result = await tokenManipulationTools.handleDeleteActors(args);
++
++                  break;
++
+                 case 'get-token-details':
+                   result = await tokenManipulationTools.handleGetTokenDetails(args);
+ 
+diff --git a/packages/mcp-server/src/tools/token-manipulation.ts b/packages/mcp-server/src/tools/token-manipulation.ts
+index 6afedf1..53df006 100644
+--- a/packages/mcp-server/src/tools/token-manipulation.ts
++++ b/packages/mcp-server/src/tools/token-manipulation.ts
+@@ -129,6 +129,25 @@ export class TokenManipulationTools {
+           required: ['tokenIds'],
+         },
+       },
++      {
++        name: 'delete-actors',
++        description:
++          'PERMANENTLY delete one or more actors from the world by ID. There is NO UNDO in Foundry — the actor and its data are gone for good. GM-only and gated by the "Allow Write Operations" setting. Verify each actor ID first (e.g. via list-characters). Intended for cleanup of test/temporary actors, NOT routine removal of campaign NPCs.',
++        inputSchema: {
++          type: 'object',
++          properties: {
++            actorIds: {
++              type: 'array',
++              description: 'Array of actor IDs to permanently delete',
++              items: {
++                type: 'string',
++              },
++              minItems: 1,
++            },
++          },
++          required: ['actorIds'],
++        },
++      },
+       {
+         name: 'get-token-details',
+         description:
+@@ -293,6 +312,43 @@ export class TokenManipulationTools {
+     }
+   }
+ 
++  async handleDeleteActors(args: any): Promise<any> {
++    const schema = z.object({
++      actorIds: z.array(z.string()).min(1),
++    });
++
++    const { actorIds } = schema.parse(args);
++
++    // PERMANENT operation — log loudly.
++    this.logger.info('Deleting actors (PERMANENT, no undo)', {
++      count: actorIds.length,
++      actorIds,
++    });
++
++    try {
++      const result = await this.foundryClient.query('foundry-mcp-bridge.delete-actors', {
++        actorIds,
++      });
++
++      this.logger.debug('Actors deleted', {
++        deleted: result.deletedCount,
++        requested: actorIds.length,
++      });
++
++      return {
++        success: result.success,
++        deletedCount: result.deletedCount,
++        deletedActors: result.deletedActors,
++        failedActors: result.failedActors,
++      };
++    } catch (error) {
++      this.logger.error('Failed to delete actors', error);
++      throw new Error(
++        `Failed to delete actors: ${error instanceof Error ? error.message : 'Unknown error'}`
++      );
++    }
++  }
++
+   async handleGetTokenDetails(args: any): Promise<any> {
+     const schema = z.object({
+       tokenId: z.string(),
