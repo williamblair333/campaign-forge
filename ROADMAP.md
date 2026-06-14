@@ -56,11 +56,14 @@ _(none)_
 - **FMG headless map-gen** pinned to v1.99 (PR #19) — `scripts/fmg-generate.py` (Playwright) → map_tools-compatible JSON → Kanka sync. Closes the "FMG has no REST API" gap.
 - `foundryvtt-rest-api` — **skipped by decision** (MCP bridge already covers Foundry).
 
-### Next candidates (optional / external — core stack is usable)
-- **Upstream the 3 Kanka CE patches** as PRs to `kinnewig/kanka-community-edition` — external publishing; needs an explicit go-ahead (deferred).
-- Fix `map_tools.py` docstring (".map = JSON" is wrong; json bridge is `fmg-generate.py`).
-- Migrate FMG off the v1.99 pin (Node 24 + Vite build + parser re-verify) only if a newer FMG is wanted.
+### Resolved 2026-06-14
+- **Kanka CE upstream patches** — verified, **no PR warranted** (minio already fixed upstream via s3→minio endpoint; isApi removal is deploy-specific; ports are local). Patches stay local-only.
+- **`map_tools.py` docstring** — fixed (PR #21).
+
+### Next candidates (optional / research — core stack is usable)
+- Migrate FMG off the v1.99 pin — only if a newer FMG feature is wanted (needs Node-24 toolchain + Vite build + re-reverse the new export; the v1.99 pin works for the seeded-map → Kanka pipeline).
 - Per-stage CampaignGenerator MCP tools (gate-respecting) — only if Claude-driven CG post-session automation is wanted.
+- **Autonomous AI table** (research swing) — wanted; gate on a real end-to-end session + the text-only weekend experiment first.
 
 ---
 
