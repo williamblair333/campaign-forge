@@ -130,17 +130,24 @@ For the full step-by-step walkthrough, see [SETUP.md](SETUP.md).
 
 ```
 campaign-forge/
-├── kanka_client.py           # Python REST client for Kanka CE
+├── kanka_client.py           # Python REST client for Kanka CE (CRUD + create/update)
 ├── world_builder.py          # Conversational world builder (Claude → Kanka CE)
-├── map_tools.py              # Azgaar FMG .map parser and Kanka CE sync
+├── kanka_sync.py             # Kanka CE → world_state.md grounding doc (pull)
+├── kanka_push.py             # world_state.md → Kanka CE (push-back; create/update)
+├── kanka_mcp.py              # MCP server: kanka_pull / push_preview / push_apply
+├── map_tools.py              # FMG burgs/states JSON → Kanka CE sync
+├── rag/                      # Local statblock/rules RAG (Ollama + LanceDB, SRD 5.2.1)
 ├── docker-compose.foundry.yml # Foundry VTT (felddy image, ports 30000 + 31415)
 ├── foundry-vtt-mcp/          # MCP bridge: 37 tools connecting Claude to Foundry
 ├── foundry/data/             # Foundry persistent data (worlds, config, cache)
 ├── scripts/
 │   ├── foundry-setup.sh      # Foundry lifecycle (start/stop/backup)
-│   └── fmg-setup.sh          # Fantasy Map Generator local server
+│   ├── fmg-setup.sh          # Fantasy Map Generator local server (pinned v1.99)
+│   └── fmg-generate.py       # Headless FMG map generation → burgs/states JSON
+├── requirements-mcp.txt      # Kanka MCP server deps (mcp[cli]) → .venv-mcp
+├── requirements-fmg.txt      # Headless map-gen deps (playwright) → .venv-fmg
 ├── patches/
-│   └── kanka-ce.patch        # Bug fixes applied to Kanka CE for single-domain installs
+│   └── kanka-ce.patch        # Local bug fixes for Kanka CE single-domain installs
 ├── .env.example              # Template: KANKA_*, FOUNDRY_*, ANTHROPIC_API_KEY
 ├── SETUP.md                  # Step-by-step setup guide
 └── CHANGELOG.md
