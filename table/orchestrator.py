@@ -3,7 +3,7 @@ import argparse
 
 from table.combat import CombatState, Combatant
 from table.dice import RollRequest, request_roll
-from table.gm_agent import GMAgent
+from table.gm_agent import make_gm_agent
 from table.personas import PHASE_A_PERSONAS, PHASE_B_PERSONAS
 from table.player_agent import PlayerAgent
 from table.transcript import Transcript, TurnRecord
@@ -22,7 +22,7 @@ def _apply_scene_update(state: CombatState, scene_update: dict) -> None:
 class TableOrchestrator:
     def __init__(
         self,
-        gm: GMAgent,
+        gm,
         players: list[PlayerAgent],
         use_foundry: bool = True,
     ) -> None:
@@ -142,10 +142,14 @@ def main() -> None:
                         help="Output markdown file")
     parser.add_argument("--no-foundry", action="store_true",
                         help="Use local dice only (no Foundry MCP)")
+    parser.add_argument(
+        "--gm-backend", choices=["sdk", "cli", "ollama", "auto"], default="auto",
+        help="GM backend: sdk (ANTHROPIC_API_KEY), cli (claude CLI/Max), ollama (local), auto (detect)",
+    )
     args = parser.parse_args()
 
     personas = PHASE_A_PERSONAS if args.phase == "A" else PHASE_B_PERSONAS
-    gm = GMAgent()
+    gm = make_gm_agent(args.gm_backend)
     players = [PlayerAgent(p) for p in personas]
     orch = TableOrchestrator(gm, players, use_foundry=not args.no_foundry)
     combat = _build_goblin_ambush()
