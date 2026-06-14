@@ -56,6 +56,9 @@ foundry-vtt-mcp/
 .claude/
 .understand-anything/
 
+# ── Exploratory writeups / design scratch (not shipped) ──────────────────────
+reviews/
+
 # ── memweave (centralized stack tool — gitignored symlinks into Uncle-J-s-Refinery) ──
 # Single global store at ~/.uncle-j-memory; these are machine-specific symlinks
 # so the documented `mw_search.py` command resolves from this project root too.

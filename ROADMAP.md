@@ -35,17 +35,15 @@
 
 ## In Progress
 
-Nothing currently in progress.
+### Phase 5 — CampaignGenerator integration
+- [x] `kanka_sync.py` — pull world_state from Kanka CE → write `world_state.md` (2026-06-13; verified vs live campaign 1). Paginated `kanka_client._get_all`.
+- [ ] Post-session: push updated NPC/location states back to Kanka CE
+- [ ] `prep.py` reads from Kanka CE as a grounding source
+- [ ] Post-session Kanka update step wired after `distill.py` runs
 
 ---
 
 ## Planned
-
-### Phase 5 — CampaignGenerator integration
-- `kanka_sync.py` — pull world_state from Kanka CE → write `world_state.md`
-- Post-session: push updated NPC/location states back to Kanka CE
-- `prep.py` reads from Kanka CE as a grounding source
-- Post-session Kanka update step wired after `distill.py` runs
 
 ### Phase 6 — MCP server for CampaignGenerator
 - Extend `mcp_server.py` in CampaignGenerator to expose:
@@ -53,6 +51,19 @@ Nothing currently in progress.
   - `run_session_pipeline` — trigger full post-session pipeline
   - `get_world_state` — return current grounding docs
   - `get_campaign_state` — return current campaign state
+
+---
+
+## Research / Exploration (not committed phases)
+
+### Autonomous AI table — AI GM + distinct AI players (optional voice)
+- One AI GM (Claude) + N AI players (local Ollama / mixed models), each a distinct
+  persona, playing AI-authored one-shot modules. Optional per-agent TTS (Kokoro first).
+- Consumes existing infra: `rag/` (SRD rulings), Foundry MCP (scene/dice/tokens),
+  Kanka (`kanka_sync.py` canon), CampaignGenerator (transcript → narrative).
+- Correctly sequenced after Phases 5–6. Gate: prove the loop with the weekend
+  experiment (1 GM + 2 players, 1 combat, text-only) before scoping further.
+- Full writeup: `reviews/ai-table-gm-and-players-exploration.md` (gitignored, local).
 
 ---
 
