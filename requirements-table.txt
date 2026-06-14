@@ -1,0 +1,6 @@
+# table/ module runtime deps (Phase A/B)
+anthropic>=0.40.0
+
+# Phase C (TTS — not needed for Phase A/B):
+# kokoro>=0.9.0
+# soundfile>=0.12.0
