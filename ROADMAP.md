@@ -23,7 +23,13 @@
 - License key and admin key stored in `.env`
 - **WebSocket fixed (2026-06-05):** switched to `network_mode: host`; join page form now renders for remote Tailscale browsers
 - MCP bridge serverHost now auto-detects from `window.location.hostname` — no manual config needed
-- Remaining: smoke tests — GM logs in (leave serverHost blank, port 31415), Claude creates a Scene and NPC actor
+- **Smoke tests PASSED (2026-06-13):** end-to-end Claude→bridge→Foundry verified (world info, scenes, create + read-back NPC actor)
+- **Added `delete-actors` MCP tool (2026-06-13):** GM-gated, PERMANENT; preserved as `patches/delete-actors.patch` (fork is gitignored)
+
+### Phase 4 — Local AI / RAG ✅ (2026-06-13)
+- Built **in-repo `rag/`** (decision: skipped `dnd-llm-game`) — GPU Ollama + LanceDB over SRD 5.2.1 (CC-BY-4.0)
+- `rag/ingest.py` + `rag/query.py`; reusable `search`/`answer`; 1,596 chunks; retrieval + grounded answers verified
+- Follow-up: layout-aware chunking for cleaner statblock retrieval
 
 ---
 
@@ -34,12 +40,6 @@ Nothing currently in progress.
 ---
 
 ## Planned
-
-### Phase 4 — Local AI / RAG
-- `dnd-llm-game` (FastAPI + Ollama + LanceDB) stood up in Docker
-- PDF rulebooks ingested as lore corpus
-- Statblock retrieval from local PDFs tested and benchmarked
-- Decision: keep as sidecar or fold RAG into CampaignGenerator directly
 
 ### Phase 5 — CampaignGenerator integration
 - `kanka_sync.py` — pull world_state from Kanka CE → write `world_state.md`

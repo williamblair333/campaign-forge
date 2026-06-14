@@ -228,19 +228,16 @@ curl -s -H "Authorization: Bearer $KANKA_TOKEN" http://localhost:8081/api/1.0/ca
 # Check Foundry VTT (start if needed: bash scripts/foundry-setup.sh)
 bash scripts/foundry-setup.sh status
 
-# Then: Phase 3 smoke tests — MUST run browser on dma64 directly (not remote)
-# Foundry uses PixiJS which requires WebGL; a remote/headless browser will not work.
+# RAG (Phase 4, DONE): Ollama auto-restarts (unless-stopped). If down:
+#   docker start open-webui-ollama-1
+#   .venv-rag/bin/python -m rag.query "Goblin Warrior stat block" -k 5
+# Foundry bridge: smoke tests PASSED. delete-actors tool added (PERMANENT, GM-only).
+#   After any foundry-vtt-mcp re-clone: git apply patches/delete-actors.patch,
+#   rebuild, redeploy dist, then Foundry F5 + Claude /mcp reconnect.
 #
-# 1. On dma64: open http://localhost:30000/join (or http://100.118.143.57:30000/join)
-#    — the player selector form should appear (Gamemaster card visible)
-# 2. Log in as Gamemaster (password: FoundryGM2026!)
-# 3. Settings → Module Settings → Foundry MCP Bridge:
-#    - Websocket Server Host: (leave blank — auto-detects from page URL)
-#    - MCP Port: 31415
-#    - Allow Write Operations: ✅
-# 4. Run MCP backend: node packages/server/dist/index.js (in foundry-vtt-mcp/)
-# 5. Ask Claude: "List scenes in my Foundry world" to verify bridge
-# After that: Phase 4 — dnd-llm-game RAG setup
+# START HERE: Phase 5 — CampaignGenerator ↔ Kanka sync (kanka_sync.py: pull
+#   world_state from Kanka CE → world_state.md; wire prep.py to read it; push
+#   post-session NPC/location updates back via kanka_client.py).
 ```
 
 ## Key Infrastructure Notes

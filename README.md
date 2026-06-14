@@ -4,7 +4,7 @@
 
 campaign-forge is an infrastructure and integration layer that lets a Dungeon Master use Claude to build and maintain a living campaign world — creating NPCs, locations, factions, and timelines in a self-hosted world-state store, generating maps, running sessions through a VTT, and automatically processing session transcripts back into structured lore.
 
-> **Status:** Phase 3 complete — Kanka CE, world builder, map tools, and Foundry VTT all running. Building toward full session pipeline.
+> **Status:** Phase 4 complete — Kanka CE, world builder, map tools, Foundry VTT (smoke-tested), and a local statblock RAG harness all running. Building toward the full session pipeline (Phase 5: CampaignGenerator ↔ Kanka sync).
 
 ---
 
@@ -17,8 +17,8 @@ campaign-forge is an infrastructure and integration layer that lets a Dungeon Ma
 | Conversational world builder | `world_builder.py` | ✅ Working |
 | Map import (Azgaar FMG) | `map_tools.py` + `scripts/fmg-setup.sh` | ✅ Working |
 | Virtual tabletop | Foundry VTT 14.363 (self-hosted) | ✅ Running |
-| VTT ↔ Claude MCP bridge | `foundry-vtt-mcp` (37 tools) | 🔧 Installed, smoke tests pending |
-| Local 5e rules / statblock RAG | dnd-llm-game (Ollama + LanceDB) | 🔜 Phase 4 |
+| VTT ↔ Claude MCP bridge | `foundry-vtt-mcp` (+ `delete-actors`) | ✅ Smoke-tested |
+| Local 5e rules / statblock RAG | in-repo `rag/` (GPU Ollama + LanceDB, SRD 5.2.1) | ✅ Working |
 | Campaign prep pipeline | CampaignGenerator integration | 🔜 Phase 5 |
 | Post-session narrative generation | CampaignGenerator | 🔜 Phase 5 |
 
@@ -54,7 +54,7 @@ Post-session:
 | World state / lore | [Kanka Community Edition](https://github.com/kinnewig/kanka-community-edition) |
 | VTT | [Foundry VTT](https://foundryvtt.com) |
 | VTT ↔ Claude bridge | [foundry-vtt-mcp](https://github.com/adambdooley/foundry-vtt-mcp) |
-| Local AI / RAG | [dnd-llm-game](https://github.com/tegridydev/dnd-llm-game) |
+| Local AI / RAG | in-repo `rag/` — GPU [Ollama](https://ollama.com) + [LanceDB](https://lancedb.com) over SRD 5.2.1 (see `rag/README.md`) |
 | 5e rules data | [mnehmos.open5e.mcp](https://github.com/Mnehmos/mnehmos.open5e.mcp) |
 | Map generation | [Fantasy Map Generator](https://github.com/Azgaar/Fantasy-Map-Generator) |
 | Campaign narrative pipeline | [CampaignGenerator](https://github.com/kostadis/CampaignGenerator) |
