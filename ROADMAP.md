@@ -51,7 +51,10 @@
 
 ## In Progress
 
-_(none)_
+### AI Table Experiment — design spec (2026-06-14)
+- Brainstorming complete; incremental milestone approach locked (A → B → C)
+- Design spec in progress (`docs/superpowers/specs/2026-06-14-ai-table-design.md`) — next session
+- Implementation plan (writing-plans) to follow spec approval
 
 ---
 
@@ -69,7 +72,7 @@ _(none)_
 ### Next candidates (optional / research — core stack is usable)
 - Migrate FMG off the v1.99 pin — only if a newer FMG feature is wanted (needs Node-24 toolchain + Vite build + re-reverse the new export; the v1.99 pin works for the seeded-map → Kanka pipeline).
 - Per-stage CampaignGenerator MCP tools (gate-respecting) — only if Claude-driven CG post-session automation is wanted.
-- **Autonomous AI table** (research swing) — wanted; gate on a real end-to-end session + the text-only weekend experiment first.
+- **Autonomous AI table** — MOVED TO IN PROGRESS (brainstorming complete 2026-06-14).
 
 ---
 

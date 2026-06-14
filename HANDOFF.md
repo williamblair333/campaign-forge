@@ -252,6 +252,18 @@ bash scripts/foundry-setup.sh status
 #         register dnd5e_mcp.py via .mcp.json.example
 #         tools: lookup_monster / lookup_spell / lookup_item / search_5e
 #
+# ACTIVE NEXT TASK — AI Table Experiment (design spec in progress):
+#   Brainstorming complete (2026-06-14). Decisions locked:
+#     - Incremental: Phase A (1 GM + 2 players, 1 combat) → B (5 players, 3 combats) → C (Kokoro TTS)
+#     - World: The Shattered Realm (Kanka CE canon); kanka_sync before play, kanka_push after
+#     - 3 combats = standalone tests (HP/resources reset between each), not a narrative one-shot
+#     - Models: Claude Sonnet (GM), Ollama llama3.1:8b (all 5 players)
+#     - Module: table/ (orchestrator, gm_agent, player_agent, personas, combat, dice, transcript, smoke_test)
+#     - Gating: smoke_test → AI GM dry run → Phase A → Phase B → Phase C (TTS)
+#   NEXT SESSION: finish design sections 2–N (agents, turn-taking, combat loop, output),
+#   write spec to docs/superpowers/specs/2026-06-14-ai-table-design.md, commit,
+#   then invoke writing-plans skill for the implementation plan.
+#
 # Remaining backlog (optional / research — NOT usage blockers):
 #   - Kanka CE upstream PRs: RESOLVED 2026-06-14 — verified, NO PR warranted
 #     (minio already fixed upstream via s3→minio endpoint; isApi removal is
@@ -261,9 +273,6 @@ bash scripts/foundry-setup.sh status
 #     (system has 20; no nvm/fnm; apt caps at 20) + Vite build + re-reverse the new
 #     export (the TS rewrite likely moves pack/burgs off global scope, breaking the
 #     clean headless extraction). v1.99 does the job. Defer unless a newer feature is needed.
-#   - Research swing: autonomous AI table (reviews/, gitignored) — user wants it but
-#     wants stable footing first. Gate: run ONE real end-to-end session through the
-#     stack, then the text-only weekend experiment (1 GM + 2 players, 1 combat).
 #
 # FMG headless usage: bash scripts/fmg-setup.sh  (serves v1.99 on :8082)
 #   python3 -m venv .venv-fmg && .venv-fmg/bin/pip install -r requirements-fmg.txt

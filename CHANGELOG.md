@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-14 — AI table experiment designed (brainstorming session, no code)
+
+### Decided
+- **AI table approach:** incremental milestones — Phase A (1 GM + 2 players, 1 combat, text-only) → Phase B (5 players, 3 combats) → Phase C (Kokoro TTS)
+- **World:** The Shattered Realm (Kanka CE canon); AI GM syncs `world_state.md` before play, pushes new entities back after
+- **3 combats:** standalone combat tests (HP/resources reset between each), not a narrative one-shot
+- **Voice:** text transcript first; Kokoro TTS (Apache-2.0, 54 voicepacks) as Phase C follow-on
+- **Module layout:** `table/orchestrator.py`, `gm_agent.py`, `player_agent.py`, `personas.py`, `combat.py`, `dice.py`, `transcript.py`, `smoke_test.py`, `tts/kokoro.py`
+- **Models:** Claude Sonnet for GM; Ollama `llama3.1:8b` for all 5 players (zero API cost)
+- **Gating:** smoke-test (all services alive) → AI GM dry run (single scene, no players) → Phase A → Phase B → Phase C
+- Spec write-up in progress; writing-plans to follow next session
+
+---
+
 ## 2026-06-14 — Phase 7: self-hosted 5e data layer (dnd5e_mcp.py) shipped (PR #27)
 
 ### Added
