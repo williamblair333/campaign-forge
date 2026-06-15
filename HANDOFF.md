@@ -1,7 +1,7 @@
 # campaign-forge — Session Handoff
 
 **Date:** 2026-06-14
-**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed and MCP bridge auto-detect deployed. **Smoke tests PASSED 2026-06-13** — full Claude→bridge→Foundry round-trip verified (get-world-info, list-scenes, created NPC actor from SRD compendium, read back full statblock). Docker Port Registry established and all inter-project port conflicts resolved (2026-06-07); dcup `up -f` flag-order bug fixed 2026-06-13. **Phase 4 (local RAG) DONE 2026-06-13** — in-repo `rag/` over SRD 5.2.1 on GPU Ollama; retrieval + grounded answers work, chunking quality tuning pending. **Phase 5 COMPLETE 2026-06-14** — `kanka_sync.py` pulls Kanka CE → `world_state.md` (PR #11); `kanka_push.py` pushes an edited `world_state.md` back into Kanka (create/update, dry-run by default, never deletes — PR #12); and `prep.py` already reads `world_state.md` as a required grounding doc (config-declared, no CampaignGenerator change needed). The Kanka ⇄ CampaignGenerator sync loop is closed. **Phase 6 COMPLETE 2026-06-14** — `kanka_mcp.py` (PR #14) exposes the sync engine as MCP tools (`kanka_pull` / `kanka_push_preview` / `kanka_push_apply`) so Claude drives it directly; CampaignGenerator's `mcp_server.py` already had `get_world_state` / `get_campaign_state` / `run_prep` (as `session_prep`). The 4th named tool `run_session_pipeline` was **intentionally not built** — CG's `sd_*` pipeline is deliberately human-gated (no runner by design; see `project_campaigngenerator_pipeline_gates` memory). Also explored an **autonomous AI table** (AI GM + distinct AI players, optional voice) — writeup in `reviews/` (gitignored), logged as a research track in ROADMAP. **AI Table (Phase 7 research track) COMPLETE 2026-06-14** — `table/` module merged via PR #28. Claude Sonnet GM + Ollama llama3.1:8b players, full combat loop, 61 tests, smoke_test exits 0. Run: `python -m table.orchestrator --phase A --no-foundry --out transcript.md`. Gate to Phase B: human eyeball Phase A transcript (persona distinctiveness, HP correctness to clean end condition).
+**Status:** Phase 3 COMPLETE — Kanka CE + world builder + map tools + Foundry VTT all running. WebSocket fixed. foundry-vtt-mcp installed and MCP bridge auto-detect deployed. **Smoke tests PASSED 2026-06-13** — full Claude→bridge→Foundry round-trip verified (get-world-info, list-scenes, created NPC actor from SRD compendium, read back full statblock). Docker Port Registry established and all inter-project port conflicts resolved (2026-06-07); dcup `up -f` flag-order bug fixed 2026-06-13. **Phase 4 (local RAG) DONE 2026-06-13** — in-repo `rag/` over SRD 5.2.1 on GPU Ollama; retrieval + grounded answers work, chunking quality tuning pending. **Phase 5 COMPLETE 2026-06-14** — `kanka_sync.py` pulls Kanka CE → `world_state.md` (PR #11); `kanka_push.py` pushes an edited `world_state.md` back into Kanka (create/update, dry-run by default, never deletes — PR #12); and `prep.py` already reads `world_state.md` as a required grounding doc (config-declared, no CampaignGenerator change needed). The Kanka ⇄ CampaignGenerator sync loop is closed. **Phase 6 COMPLETE 2026-06-14** — `kanka_mcp.py` (PR #14) exposes the sync engine as MCP tools (`kanka_pull` / `kanka_push_preview` / `kanka_push_apply`) so Claude drives it directly; CampaignGenerator's `mcp_server.py` already had `get_world_state` / `get_campaign_state` / `run_prep` (as `session_prep`). The 4th named tool `run_session_pipeline` was **intentionally not built** — CG's `sd_*` pipeline is deliberately human-gated (no runner by design; see `project_campaigngenerator_pipeline_gates` memory). Also explored an **autonomous AI table** (AI GM + distinct AI players, optional voice) — writeup in `reviews/` (gitignored), logged as a research track in ROADMAP. **AI Table (Phase 7 research track) COMPLETE 2026-06-14** — `table/` module merged via PR #28; three GM backends + stream + comprehensive dice parser added in PR #29; HP tracking and condition removal fixed in PR #30. **Phase A LIVE RUN COMPLETE 2026-06-14** — TPK in Round 5, 65 turns, ~65 min (`--gm-backend cli --stream --no-foundry`). Transcript saved as `transcript.md` (gitignored). GM narration quality confirmed excellent. 88 tests passing. **GATE TO PHASE B: human eyeball the transcript** (persona distinctiveness, HP arc narrative correctness, death save adjudication).
 **Origin sessions:** CampaignGenerator analysis + architecture discussion → Kanka CE deployment → world builder + map tools → Foundry VTT setup → Foundry WebSocket debugging → Foundry join page WebGL investigation
 
 ---
@@ -252,17 +252,22 @@ bash scripts/foundry-setup.sh status
 #         register dnd5e_mcp.py via .mcp.json.example
 #         tools: lookup_monster / lookup_spell / lookup_item / search_5e
 #
-# ACTIVE NEXT TASK — AI Table Experiment (design spec in progress):
-#   Brainstorming complete (2026-06-14). Decisions locked:
-#     - Incremental: Phase A (1 GM + 2 players, 1 combat) → B (5 players, 3 combats) → C (Kokoro TTS)
-#     - World: The Shattered Realm (Kanka CE canon); kanka_sync before play, kanka_push after
-#     - 3 combats = standalone tests (HP/resources reset between each), not a narrative one-shot
-#     - Models: Claude Sonnet (GM), Ollama llama3.1:8b (all 5 players)
-#     - Module: table/ (orchestrator, gm_agent, player_agent, personas, combat, dice, transcript, smoke_test)
-#     - Gating: smoke_test → AI GM dry run → Phase A → Phase B → Phase C (TTS)
-#   NEXT SESSION: finish design sections 2–N (agents, turn-taking, combat loop, output),
-#   write spec to docs/superpowers/specs/2026-06-14-ai-table-design.md, commit,
-#   then invoke writing-plans skill for the implementation plan.
+# AI TABLE STATUS — Phase A live run COMPLETE (2026-06-14)
+#   Run: python3 -m table.orchestrator --phase A --no-foundry --gm-backend cli --stream --out transcript.md
+#   Result: TPK Round 5, 65 turns, ~65 min. Transcript in transcript.md (gitignored).
+#   88 tests passing (PRs #28, #29, #30 all merged to main).
+#
+# GATE TO PHASE B: human eyeball transcript.md first.
+#   Check: (1) Brakka and Elara feel distinct (dwarven brute vs. arcane cautious)
+#          (2) HP arc is narratively plausible (even if code HP tracking had minor lag)
+#          (3) Death saves adjudicated correctly (need 3 successes/failures)
+#          (4) Combat end condition was legitimate (TPK = both at 0 HP)
+#   If satisfied → start Phase B (add remaining 3 Ollama player personas, 3 combats)
+#
+# KNOWN BUG (minor, next-run will be better):
+#   HP tracking occasionally lags 1 actor — GM's narrative was accurate but code state
+#   was up to 4 HP behind. Fixed in PR #30 (RollRequest.target auto-apply). Next run
+#   should track correctly if GM emits target in damage roll_requests.
 #
 # Remaining backlog (optional / research — NOT usage blockers):
 #   - Kanka CE upstream PRs: RESOLVED 2026-06-14 — verified, NO PR warranted

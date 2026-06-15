@@ -4,7 +4,7 @@
 
 campaign-forge is an infrastructure and integration layer that lets a Dungeon Master use Claude to build and maintain a living campaign world — creating NPCs, locations, factions, and timelines in a self-hosted world-state store, generating maps, running sessions through a VTT, and automatically processing session transcripts back into structured lore.
 
-> **Status:** Phase 6 complete — Kanka CE, world builder, map tools, Foundry VTT (smoke-tested), a local statblock RAG harness, a bidirectional Kanka ⇄ CampaignGenerator grounding sync, and an MCP server that drives that sync from Claude, all running.
+> **Status:** Phase 7 (AI Table) Phase A complete — autonomous AI D&D table ran end-to-end (TPK Round 5, 65 turns). Claude Sonnet GM + Ollama players. All prior phases also running: Kanka CE, world builder, map tools, Foundry VTT (smoke-tested), local statblock RAG, bidirectional Kanka ⇄ CampaignGenerator sync, and MCP server.
 
 ---
 
@@ -24,6 +24,7 @@ campaign-forge is an infrastructure and integration layer that lets a Dungeon Ma
 | Campaign prep grounding | CampaignGenerator `prep.py` reads `world_state.md` | ✅ Wired |
 | Kanka sync as Claude MCP tools | `kanka_mcp.py` (pull / push-preview / push-apply) | ✅ Working |
 | Post-session narrative generation | CampaignGenerator `mcp_server.py` (human-gated) | ✅ Exists |
+| Autonomous AI D&D table | `table/` — Claude Sonnet GM + Ollama players, full combat loop | ✅ Phase A run (TPK R5) |
 
 ---
 

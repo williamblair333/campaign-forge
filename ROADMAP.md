@@ -42,6 +42,13 @@
 - `scripts/dnd5e-fetch.sh` — sparse-clone fetch; auto-runs on first startup; data gitignored
 - 20 pytest cases; `mnehmos.open5e.mcp` (cloud) retired
 
+### Phase 7 — AI Table (table/ module) ✅ Phase A (2026-06-14)
+- `table/` module: orchestrator, gm_agent (3 backends), player_agent, personas, combat, dice, transcript, smoke_test
+- Claude Sonnet GM + Ollama llama3.1:8b players; `--gm-backend cli` uses Max subscription (no API key)
+- `--stream` flag for live stdout; comprehensive dice parser (kh/kl/dh/dl, case-insensitive)
+- Monster HP auto-apply via `RollRequest.target`; condition removal via `conditions_remove`
+- Phase A live run: TPK Round 5, 65 turns. 88 tests passing. (PRs #28, #29, #30)
+
 ### Phase 6 — MCP servers ✅ (2026-06-14)
 - **campaign-forge `kanka_mcp.py`** — FastMCP server exposing the Kanka sync engine: `kanka_pull` (read-only), `kanka_push_preview` (dry-run), `kanka_push_apply` (commit; never deletes). Guarded FastMCP import (core unit-tested without `mcp`); pinned `requirements-mcp.txt`; `.mcp.json.example`. 5 tests; server build + live pull verified. (PR #14)
 - **CampaignGenerator `mcp_server.py`** — the named tools already existed: `get_world_state`, `get_campaign_state`, `run_prep` (= `session_prep`), plus ~20 more.
@@ -51,10 +58,10 @@
 
 ## In Progress
 
-### AI Table Experiment — design spec (2026-06-14)
-- Brainstorming complete; incremental milestone approach locked (A → B → C)
-- Design spec in progress (`docs/superpowers/specs/2026-06-14-ai-table-design.md`) — next session
-- Implementation plan (writing-plans) to follow spec approval
+### AI Table — Phase B (5 players, 3 combats)
+- Gate: human eyeball Phase A transcript (`transcript.md`) first
+- If cleared: add 3 remaining Ollama player personas, run 3 distinct combats, verify HP/condition tracking improved
+- Phase C (Kokoro TTS) follows after Phase B sign-off
 
 ---
 

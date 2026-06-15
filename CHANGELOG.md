@@ -6,6 +6,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-06-14 — AI table Phase A live run complete; two bug fixes merged (PRs #29, #30)
+
+### Added
+- `table/gm_agent.py` — three GM backends: `GMAgent` (Anthropic SDK), `CLIGMAgent` (claude CLI subprocess, Max subscription), `OllamaGMAgent` (local Ollama HTTP); `make_gm_agent(backend)` factory; `auto` picks SDK if `ANTHROPIC_API_KEY` set, else CLI
+- `--gm-backend {sdk,cli,ollama,auto}` and `--stream` flags on `table/orchestrator.py` main
+- `CLIGMAgent` uses `--safe-mode` flag to skip MCP server startup (avoids 120 s+ delay); 180 s timeout
+- `RollRequest.target: str | None` — orchestrator auto-applies `-roll` to target HP when `"damage"` in `purpose`; GM prompt updated to populate `target` on damage rolls
+- `CombatState.remove_condition()` — conditions can now be removed (previously add-only)
+- `conditions_remove` key in `scene_update` schema and `_apply_scene_update` handler
+- GM system prompt extended with instructions for `target` and `conditions_remove`
+
+### Fixed
+- Comprehensive dice parser in `table/dice.py`: accepts `dX` (no leading 1), `NdXkh/klK` (keep), `NdXdh/dlK` (drop), case-insensitive, space-stripped; graceful fallback to 1d20 on unknown formula instead of crash
+- Monster damage rolls no longer silently skip HP delta — auto-apply via `RollRequest.target`
+- Stale conditions (e.g. Concentration) now removable via `conditions_remove` in GM JSON output
+
+### Live run
+- Phase A first run: TPK in Round 5, 65 turns, ~65 min. Transcript saved in `transcript.md` (gitignored). GM narration quality confirmed excellent; all D&D 5e rules correctly adjudicated (concentration, death saves, unconscious = auto-crit with advantage, TPK detection). Phase A gate: human eyeball the transcript for persona distinctiveness.
+
+### Tests
+- 88 tests passing (up from 61 at PR #28 merge) — 27 new tests across dice, gm_agent, combat, and orchestrator modules
+
+---
+
 ## 2026-06-14 — AI table experiment designed (brainstorming session, no code)
 
 ### Decided
