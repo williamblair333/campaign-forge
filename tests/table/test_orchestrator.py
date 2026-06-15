@@ -131,6 +131,40 @@ def test_apply_scene_update_applies_conditions():
     assert "prone" in brakka.conditions
 
 
+def test_apply_scene_update_removes_conditions():
+    combat = CombatState([
+        Combatant("Elara Moonwhisper", 7, 0, 11, is_player=True),
+    ])
+    elara = next(c for c in combat.combatants if c.name == "Elara Moonwhisper")
+    elara.conditions = ["Concentrating: Detect Magic", "Unconscious"]
+    _apply_scene_update(combat, {
+        "hp_delta": {},
+        "conditions": {},
+        "conditions_remove": {"Elara Moonwhisper": ["Concentrating: Detect Magic"]},
+    })
+    assert "Concentrating: Detect Magic" not in elara.conditions
+    assert "Unconscious" in elara.conditions
+
+
+def test_monster_damage_roll_auto_applies_hp_delta():
+    """When a monster roll_request has target+damage purpose, HP is auto-applied."""
+    combat = CombatState([
+        Combatant("Brakka Stonefist", 13, 13, 14, is_player=True),
+        Combatant("Goblin A", 7, 7, 10, is_player=False),
+    ], max_rounds=1)
+    roll_req = RollRequest(
+        actor="Goblin A", formula="1d6+2", purpose="scimitar damage",
+        target="Brakka Stonefist",
+    )
+    gm = _mock_gm(roll_request=roll_req,
+                  scene_update={"hp_delta": {}, "conditions": {}, "conditions_remove": {}})
+    players = [_mock_player(PHASE_A_PERSONAS[0])]
+    orch = TableOrchestrator(gm, players, use_foundry=False)
+    orch.run_encounter(combat)
+    brakka = next(c for c in combat.combatants if c.name == "Brakka Stonefist")
+    assert brakka.current_hp < 13
+
+
 def test_build_goblin_ambush_returns_combat_state():
     state = _build_goblin_ambush()
     names = {c.name for c in state.combatants}

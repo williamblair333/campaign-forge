@@ -73,6 +73,27 @@ def test_add_condition_no_duplicates():
     assert brakka.conditions.count("prone") == 1
 
 
+def test_remove_condition():
+    state = _make_state()
+    state.add_condition("Brakka", "prone")
+    state.remove_condition("Brakka", "prone")
+    brakka = next(c for c in state.combatants if c.name == "Brakka")
+    assert "prone" not in brakka.conditions
+
+
+def test_remove_condition_noop_when_absent():
+    state = _make_state()
+    state.remove_condition("Brakka", "prone")  # should not raise
+    brakka = next(c for c in state.combatants if c.name == "Brakka")
+    assert brakka.conditions == []
+
+
+def test_remove_condition_unknown_name_raises():
+    state = _make_state()
+    with pytest.raises(ValueError, match="Unknown combatant"):
+        state.remove_condition("Nobody", "prone")
+
+
 def test_apply_hp_delta_unknown_name_raises():
     state = _make_state()
     with pytest.raises(ValueError, match="Unknown combatant"):

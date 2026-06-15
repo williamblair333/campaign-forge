@@ -44,6 +44,37 @@ def test_narrate_parses_roll_request():
     assert isinstance(result.roll_request, RollRequest)
     assert result.roll_request.formula == "1d20+3"
     assert result.roll_request.actor == "Brakka Stonefist"
+    assert result.roll_request.target is None
+
+
+def test_narrate_parses_roll_request_with_target():
+    client = _make_mock_client(
+        "The goblin swings!",
+        "Brakka Stonefist",
+        roll_request={
+            "actor": "Goblin A", "formula": "1d6+2",
+            "purpose": "scimitar damage", "target": "Brakka Stonefist",
+        },
+    )
+    agent = GMAgent(client=client)
+    result = agent.narrate(scene_state={}, transcript_tail=[])
+    assert result.roll_request.target == "Brakka Stonefist"
+
+
+def test_narrate_parses_conditions_remove():
+    client = _make_mock_client(
+        "Elara falls unconscious.",
+        "ALL",
+        scene_update={
+            "hp_delta": {"Elara Moonwhisper": -7},
+            "conditions": {"Elara Moonwhisper": ["Unconscious"]},
+            "conditions_remove": {"Elara Moonwhisper": ["Concentrating: Detect Magic"]},
+        },
+    )
+    agent = GMAgent(client=client)
+    result = agent.narrate(scene_state={}, transcript_tail=[])
+    remove = result.scene_update.get("conditions_remove", {})
+    assert "Concentrating: Detect Magic" in remove.get("Elara Moonwhisper", [])
 
 
 def test_narrate_parses_scene_update():

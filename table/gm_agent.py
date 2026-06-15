@@ -41,12 +41,14 @@ def _build_system(world_state: str) -> str:
         "You are the Game Master for a D&D 5e encounter set in The Shattered Realm.\n"
         "Adjudicate rules strictly per SRD 5.2.1. Never invent dice results — "
         "always emit a roll_request when a roll is needed.\n"
-        "Always name who acts next in next_actor.\n\n"
+        "Always name who acts next in next_actor.\n"
+        "For damage rolls, set roll_request.target to the name of the combatant taking the damage.\n"
+        "To remove conditions (e.g. Concentration when unconscious), list them in scene_update.conditions_remove.\n\n"
         f"World context:\n{world_snippet}\n\n"
         "Respond ONLY as JSON:\n"
         '{"narration": str, "next_actor": str, '
-        '"roll_request": {"actor": str, "formula": str, "purpose": str} | null, '
-        '"scene_update": {"hp_delta": {name: int}, "conditions": {name: [str]}}}'
+        '"roll_request": {"actor": str, "formula": str, "purpose": str, "target": str | null} | null, '
+        '"scene_update": {"hp_delta": {name: int}, "conditions": {name: [str]}, "conditions_remove": {name: [str]}}}'
     )
 
 
@@ -81,7 +83,12 @@ def _parse_gm_response(raw: str) -> GMTurn:
                 pass
     rr = obj.get("roll_request")
     roll_req = (
-        RollRequest(actor=rr["actor"], formula=rr["formula"], purpose=rr["purpose"])
+        RollRequest(
+            actor=rr["actor"],
+            formula=rr["formula"],
+            purpose=rr["purpose"],
+            target=rr.get("target"),
+        )
         if rr else None
     )
     return GMTurn(
